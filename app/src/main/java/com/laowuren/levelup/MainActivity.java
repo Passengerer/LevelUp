@@ -12,17 +12,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Button genButton = (Button)findViewById(R.id.button_gen);
+        Button createButton = (Button)findViewById(R.id.button_create);
         Button joinButton = (Button)findViewById(R.id.button_join);
-        genButton.setOnClickListener(this);
+        createButton.setOnClickListener(this);
         joinButton.setOnClickListener(this);
     }
 
     @Override
     public void onClick(View v){
         switch (v.getId()){
-            case R.id.button_gen:
-                Intent genIntent = new Intent(MainActivity.this, GenActivity.class);
+            case R.id.button_create:
+                Intent genIntent = new Intent(MainActivity.this, CreateActivity.class);
                 startActivity(genIntent);
                 break;
             case R.id.button_join:
