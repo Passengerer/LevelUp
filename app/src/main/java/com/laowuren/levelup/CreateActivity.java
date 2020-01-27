@@ -27,6 +27,7 @@ public class CreateActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d("CreateActivity", "onCreate");
         setContentView(R.layout.activity_create);
 
         roomIdText = (TextView)findViewById(R.id.text_roomId);
