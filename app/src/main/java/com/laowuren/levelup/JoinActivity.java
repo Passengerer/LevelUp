@@ -38,7 +38,7 @@ public class JoinActivity extends AppCompatActivity {
                     Toast.makeText(JoinActivity.this, "请输入房间号", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                sThread.send(new MyMessage(MyMessage.TEXT, roomIdEdit.getText().toString(), null, 0));
+                //sThread.send(roomIdEdit.getText().toString());
             }
         });
         joinRoom();
@@ -57,35 +57,25 @@ public class JoinActivity extends AppCompatActivity {
         sThread.handler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
-                if (msg.what == SocketThread.DISCONNECTED) {
-                    Log.d("JoinActivity", "disconnected");
-                    Toast.makeText(JoinActivity.this, "与服务器断开连接", Toast.LENGTH_LONG).show();
-                    JoinActivity.this.finish();
-                    sThread.stop = true;
-                } else if (msg.what == SocketThread.MYMESSAGE) {
-                    MyMessage message = (MyMessage) msg.obj;
-                    switch (message.getWhat()) {
-                        case MyMessage.TEXT:
-                            if ("ready".equals(message.getText())){
-                                if (progressBar.getVisibility() == View.VISIBLE) {
-                                    progressBar.setVisibility(View.GONE);
-                                }
-                                Toast.makeText(JoinActivity.this, "游戏开始", Toast.LENGTH_LONG).show();
-                                Intent intent = new Intent(JoinActivity.this, GameActivity.class);
-                                startActivity(intent);
+                MyMessage message = (MyMessage) msg.obj;
+                switch (message.getWhat()) {
+                    case MyMessage.TEXT:
+                        if ("ready".equals(message.getText())) {
+                            if (progressBar.getVisibility() == View.VISIBLE) {
+                                progressBar.setVisibility(View.GONE);
                             }
-                            else if("input error".equals(message.getText())){
-                                Toast.makeText(JoinActivity.this, "房间不存在", Toast.LENGTH_SHORT).show();
-                            }
-                            else if("full".equals(message.getText())){
-                                Toast.makeText(JoinActivity.this, "房间人数已满", Toast.LENGTH_SHORT).show();
-                            }
-                            else if("success".equals(message.getText())){
-                                Toast.makeText(JoinActivity.this, "等待游戏开始", Toast.LENGTH_LONG).show();
-                                if (progressBar.getVisibility() == View.GONE)
-                                    progressBar.setVisibility(View.VISIBLE);
-                            }
-                    }
+                            Toast.makeText(JoinActivity.this, "游戏开始", Toast.LENGTH_LONG).show();
+                            Intent intent = new Intent(JoinActivity.this, GameActivity.class);
+                            startActivity(intent);
+                        } else if ("input error".equals(message.getText())) {
+                            Toast.makeText(JoinActivity.this, "房间不存在", Toast.LENGTH_SHORT).show();
+                        } else if ("full".equals(message.getText())) {
+                            Toast.makeText(JoinActivity.this, "房间人数已满", Toast.LENGTH_SHORT).show();
+                        } else if ("success".equals(message.getText())) {
+                            Toast.makeText(JoinActivity.this, "等待游戏开始", Toast.LENGTH_LONG).show();
+                            if (progressBar.getVisibility() == View.GONE)
+                                progressBar.setVisibility(View.VISIBLE);
+                        }
                 }
             }
         };

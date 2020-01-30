@@ -11,8 +11,8 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.laowuren.levelup.others.MyMessage;
 import com.laowuren.levelup.thread.SocketThread;
+import com.laowuren.levelup.utils.CodeUtil;
 
 public class CreateActivity extends AppCompatActivity {
 
@@ -38,9 +38,6 @@ public class CreateActivity extends AppCompatActivity {
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (sThread != null && sThread.isAlive()){
-                    sThread.stop = true;
-                }
                 Intent intent = new Intent(CreateActivity.this, GameActivity.class);
                 startActivity(intent);
             }
@@ -61,39 +58,16 @@ public class CreateActivity extends AppCompatActivity {
         sThread.handler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
-                if (msg.what == SocketThread.DISCONNECTED) {
-                    Log.d("CreateActivity", "disconnected");
-                    Toast.makeText(CreateActivity.this, "与服务器断开连接", Toast.LENGTH_LONG).show();
-                    CreateActivity.this.finish();
-                    sThread.stop = true;
-                } else if (msg.what == SocketThread.MYMESSAGE) {
-                    MyMessage message = (MyMessage) msg.obj;
-                    switch (message.getWhat()) {
-                        case MyMessage.TEXT:
-                            Log.d("CreateActivity", message.getText());
-                            if ("player2".equals(message.getText())){
-                                player2Status.setText("玩家2: 就绪");
-                            }
-                            else if ("player3".equals(message.getText())){
-                                player3Status.setText("玩家3: 就绪");
-                            }
-                            else if ("player4".equals(message.getText())){
-                                player4Status.setText("玩家4: 就绪");
-                                playButton.setEnabled(true);
-                            }
-                            else {
-                                try {
-                                    int roomId = Integer.parseInt(message.getText());
-                                    roomIdText.setText("房间号: " + roomId);
-                                } catch (Exception e) {
-                                    Log.d("CreateActivity", "input exception");
-                                }
-                            }
-                    }
+                byte instruct = (byte)msg.obj;
+                if (instruct == CodeUtil.READY) {
+                    Intent intent = new Intent(CreateActivity.this, GameActivity.class);
+                    startActivity(intent);
+                } else if (CodeUtil.getHeader(instruct) == CodeUtil.ROOMID) {
+                    roomIdText.setText("房间号: " + (CodeUtil.getTail(instruct)));
                 }
             }
         };
         sThread.start();
-        sThread.send(new MyMessage(MyMessage.TEXT, "create room", null, 0));
+        sThread.send(CodeUtil.CREATE);
     }
 }

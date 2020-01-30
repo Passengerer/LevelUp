@@ -3,10 +3,9 @@ package com.laowuren.levelup.socket;
 import android.util.Log;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
-import java.net.UnknownHostException;
 
 /**
  * Created by Administrator on 2020/1/27/027.
@@ -17,34 +16,36 @@ public class MySocket extends Socket {
 
     private static final String host = "10.0.2.2";
     private static final int port = 9990;
-    private static ObjectInputStream ois = null;
-    private static ObjectOutputStream oos = null;
+    private static InputStream in = null;
+    private static OutputStream out = null;
     /* 持有私有静态实例，防止被引用，此处赋值为null，目的是实现延迟加载 */
     private static MySocket socket = null;
 
-    private MySocket(String host, int port) throws UnknownHostException, IOException {
+    private MySocket(String host, int port) throws IOException {
         super(host, port);
-        Log.d("MySocket", "init");
     }
 
     public static MySocket getSocket() throws IOException {
         if (socket == null) {
             socket = new MySocket(host, port);
+            Log.d("getSocket", "init");
         }
         return socket;
     }
 
-    public static ObjectInputStream getOIS() throws IOException {
-        if (ois == null) {
-            ois = new ObjectInputStream(socket.getInputStream());
+    public static InputStream getIS() throws IOException {
+        if (in == null) {
+            in = socket.getInputStream();
+            Log.d("getIS", "init");
         }
-        return ois;
+        return in;
     }
 
-    public static ObjectOutputStream getOOS() throws IOException {
-        if (oos == null) {
-            oos = new ObjectOutputStream(socket.getOutputStream());
+    public static OutputStream getOS() throws IOException {
+        if (out == null) {
+            out = socket.getOutputStream();
+            Log.d("getOS", "init");
         }
-        return oos;
+        return out;
     }
 }

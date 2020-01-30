@@ -11,6 +11,7 @@ public class Card implements Serializable {
 	
 	private Suit suit;
 	private Rank rank;
+	private int imgId;
 	
 	public Card() {}
 	
@@ -33,6 +34,14 @@ public class Card implements Serializable {
 	
 	public Rank getRank() {
 		return this.rank;
+	}
+
+	public void setImgId(int imgId){
+		this.imgId = imgId;
+	}
+
+	public int getImgId(){
+		return this.imgId;
 	}
 	
 	@Override

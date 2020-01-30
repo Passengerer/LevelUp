@@ -9,7 +9,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:background="#666"
+    android:background="#4ead48"
     tools:context="com.laowuren.levelup.GameActivity">
 
     <RelativeLayout
@@ -29,18 +29,12 @@
     </RelativeLayout>
 
     <LinearLayout
+        android:id="@+id/hand_cards_region"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:gravity="center"
         android:layout_weight="1"
-        android:orientation="horizontal"
-        android:id="@+id/hand_cards_region">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:text="abcdefg"
-            android:textSize="26sp"/>
+        android:orientation="horizontal">
 
     </LinearLayout>
 
