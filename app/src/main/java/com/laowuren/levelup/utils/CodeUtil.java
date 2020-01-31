@@ -46,54 +46,54 @@ public class CodeUtil {
                     suit = Suit.Heart;
                     break;
                 case 1:
-                    suit = Suit.Spade;
+                    suit = Suit.Club;
                     break;
                 case 2:
                     suit = Suit.Diamond;
                     break;
                 case 3:
-                    suit = Suit.Club;
+                    suit = Suit.Spade;
                     break;
             }
             switch(getTail((code))){
                 case 0:
-                    rank = Rank.Ace;
-                    break;
-                case 1:
-                    rank = Rank.Deuce;
-                    break;
-                case 2:
                     rank = Rank.Three;
                     break;
-                case 3:
+                case 1:
                     rank = Rank.Four;
                     break;
-                case 4:
+                case 2:
                     rank = Rank.Five;
                     break;
-                case 5:
+                case 3:
                     rank = Rank.Six;
                     break;
-                case 6:
+                case 4:
                     rank = Rank.Seven;
                     break;
-                case 7:
+                case 5:
                     rank = Rank.Eight;
                     break;
-                case 8:
+                case 6:
                     rank = Rank.Nine;
                     break;
-                case 9:
+                case 7:
                     rank = Rank.Ten;
                     break;
-                case 10:
+                case 8:
                     rank = Rank.Jack;
                     break;
-                case 11:
+                case 9:
                     rank = Rank.Queen;
                     break;
-                case 12:
+                case 10:
                     rank = Rank.King;
+                    break;
+                case 11:
+                    rank = Rank.Ace;
+                    break;
+                case 12:
+                    rank = Rank.Deuce;
                     break;
             }
             card = new Card(suit, rank);

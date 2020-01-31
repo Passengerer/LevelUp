@@ -15,7 +15,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="4">
+        android:layout_weight="5">
 
         <TextView
             android:layout_width="180dp"
@@ -29,12 +29,69 @@
     </RelativeLayout>
 
     <LinearLayout
-        android:id="@+id/hand_cards_region"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:gravity="center"
-        android:layout_weight="1"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_weight="2">
+
+        <LinearLayout
+            android:id="@+id/hand_cards_region"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:gravity="bottom|center_horizontal"
+            android:orientation="horizontal">
+
+        </LinearLayout>
+
+        <RelativeLayout
+            android:layout_width="120dp"
+            android:layout_height="match_parent"
+            android:paddingTop="30dp"
+            android:paddingBottom="10dp"
+            android:paddingLeft="10dp">
+
+        <Button
+            android:layout_width="56dp"
+            android:layout_height="36dp"
+            android:text="红桃"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:id="@+id/show_heart"
+            android:enabled="false"
+            android:textSize="14dp"/>
+
+        <Button
+            android:layout_width="56dp"
+            android:layout_height="36dp"
+            android:text="梅花"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentRight="true"
+            android:id="@+id/show_club"
+            android:enabled="false"
+            android:textSize="14dp"/>
+
+        <Button
+            android:layout_width="56dp"
+            android:layout_height="36dp"
+            android:text="黑桃"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:id="@+id/show_spade"
+            android:enabled="false"
+            android:textSize="14dp"/>
+
+        <Button
+            android:layout_width="56dp"
+            android:layout_height="36dp"
+            android:text="方块"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:id="@+id/show_diamond"
+            android:enabled="false"
+            android:textSize="14dp"/>
+
+        </RelativeLayout>
 
     </LinearLayout>
 

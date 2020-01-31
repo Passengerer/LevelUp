@@ -63,7 +63,7 @@ public class CreateActivity extends AppCompatActivity {
                     Intent intent = new Intent(CreateActivity.this, GameActivity.class);
                     startActivity(intent);
                 } else if (CodeUtil.getHeader(instruct) == CodeUtil.ROOMID) {
-                    roomIdText.setText("房间号: " + (CodeUtil.getTail(instruct)));
+                    roomIdText.append("" + (CodeUtil.getTail(instruct)));
                 }
             }
         };
