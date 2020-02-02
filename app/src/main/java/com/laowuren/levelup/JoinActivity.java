@@ -13,8 +13,12 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.laowuren.levelup.others.MyMessage;
 import com.laowuren.levelup.thread.SocketThread;
+import com.laowuren.levelup.utils.CodeUtil;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 
 public class JoinActivity extends AppCompatActivity {
 
@@ -23,6 +27,15 @@ public class JoinActivity extends AppCompatActivity {
     private EditText roomIdEdit;
     private Button joinButton;
     private ProgressBar progressBar;
+
+    private String fullStr;
+    private String noRoomIdStr;
+    private String successStr;
+
+    private String inputErrorStr;
+    private String noInputStr;
+
+    private int playerId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,11 +47,32 @@ public class JoinActivity extends AppCompatActivity {
         joinButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                int roomId = -1;
                 if (TextUtils.isEmpty(roomIdEdit.getText())){
-                    Toast.makeText(JoinActivity.this, "请输入房间号", Toast.LENGTH_SHORT).show();
+                    try{
+                        String str = URLEncoder.encode("请输入房间号", "GBK");
+                        noInputStr = URLDecoder.decode(str, "UTF-8");
+                    }catch (UnsupportedEncodingException e){
+                        noInputStr = "please input room id";
+                    }finally {
+                        Toast.makeText(JoinActivity.this, noInputStr, Toast.LENGTH_SHORT).show();
+                    }
                     return;
                 }
-                //sThread.send(roomIdEdit.getText().toString());
+                try{
+                    roomId = Integer.parseInt(roomIdEdit.getText().toString());
+                }catch (Exception e){
+                    try{
+                        String str = URLEncoder.encode("输入错误", "GBK");
+                        inputErrorStr = URLDecoder.decode(str, "UTF-8");
+                    }catch (UnsupportedEncodingException ex){
+                        inputErrorStr = "input error";
+                    }finally {
+                        Toast.makeText(JoinActivity.this, inputErrorStr, Toast.LENGTH_SHORT).show();
+                    }
+                    return;
+                }
+                sThread.send((byte)(CodeUtil.ROOMID | (byte)roomId));
             }
         });
         joinRoom();
@@ -50,32 +84,52 @@ public class JoinActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.d("JoinActivity", "socket exception");
             e.printStackTrace();
-            Toast.makeText(JoinActivity.this, "连接服务器失败", Toast.LENGTH_LONG).show();
+            Toast.makeText(JoinActivity.this, "disconnected", Toast.LENGTH_LONG).show();
             JoinActivity.this.finish();
         }
 
         sThread.handler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
-                MyMessage message = (MyMessage) msg.obj;
-                switch (message.getWhat()) {
-                    case MyMessage.TEXT:
-                        if ("ready".equals(message.getText())) {
-                            if (progressBar.getVisibility() == View.VISIBLE) {
-                                progressBar.setVisibility(View.GONE);
-                            }
-                            Toast.makeText(JoinActivity.this, "游戏开始", Toast.LENGTH_LONG).show();
-                            Intent intent = new Intent(JoinActivity.this, GameActivity.class);
-                            startActivity(intent);
-                        } else if ("input error".equals(message.getText())) {
-                            Toast.makeText(JoinActivity.this, "房间不存在", Toast.LENGTH_SHORT).show();
-                        } else if ("full".equals(message.getText())) {
-                            Toast.makeText(JoinActivity.this, "房间人数已满", Toast.LENGTH_SHORT).show();
-                        } else if ("success".equals(message.getText())) {
-                            Toast.makeText(JoinActivity.this, "等待游戏开始", Toast.LENGTH_LONG).show();
-                            if (progressBar.getVisibility() == View.GONE)
-                                progressBar.setVisibility(View.VISIBLE);
-                        }
+                byte code = (byte)msg.obj;
+                if (code == CodeUtil.READY){
+                    progressBar.setVisibility(View.GONE);
+                    Intent intent = new Intent(JoinActivity.this, GameActivity.class);
+                    intent.putExtra("playerId", playerId);
+                    startActivity(intent);
+                }
+                else if (code == CodeUtil.FAILED2){
+                    try{
+                        String str = URLEncoder.encode("房间人数已满", "GBK");
+                        fullStr = URLDecoder.decode(str, "UTF-8");
+                    }catch (UnsupportedEncodingException e){
+                        fullStr = "full";
+                    }finally {
+                        Toast.makeText(JoinActivity.this, fullStr, Toast.LENGTH_SHORT).show();
+                    }
+                }
+                else if (code == CodeUtil.FAILED3){
+                    try{
+                        String str = URLEncoder.encode("无该房间", "GBK");
+                        noRoomIdStr = URLDecoder.decode(str, "UTF-8");
+                    }catch (UnsupportedEncodingException e){
+                        noRoomIdStr = "no such room";
+                    }finally {
+                        Toast.makeText(JoinActivity.this, noRoomIdStr, Toast.LENGTH_SHORT).show();
+                    }
+                }
+                else if (CodeUtil.getHeader(code) == CodeUtil.ROOMID) {
+                    playerId = CodeUtil.getTail(code) & 0x03;
+                    try {
+                        String str = URLEncoder.encode("加入成功，等待其他玩家", "GBK");
+                        successStr = URLDecoder.decode(str, "UTF-8");
+                    } catch (UnsupportedEncodingException e) {
+                        successStr = "success";
+                    } finally {
+                        Toast.makeText(JoinActivity.this, successStr, Toast.LENGTH_SHORT).show();
+                        progressBar.setVisibility(View.VISIBLE);
+                        joinButton.setEnabled(false);
+                    }
                 }
             }
         };

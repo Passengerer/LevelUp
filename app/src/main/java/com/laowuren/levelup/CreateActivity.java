@@ -7,22 +7,28 @@ import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.laowuren.levelup.thread.SocketThread;
 import com.laowuren.levelup.utils.CodeUtil;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+
 public class CreateActivity extends AppCompatActivity {
 
     private SocketThread sThread = null;
 
     private TextView roomIdText;
-    private TextView player2Status;
-    private TextView player3Status;
-    private TextView player4Status;
-    private Button playButton;
+    private ProgressBar progressBar;
+
+    private String waitStr;
+    private String errorStr;
+
+    private int playerId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,17 +37,7 @@ public class CreateActivity extends AppCompatActivity {
         setContentView(R.layout.activity_create);
 
         roomIdText = (TextView)findViewById(R.id.text_roomId);
-        playButton = (Button)findViewById(R.id.button_play);
-        player2Status = (TextView)findViewById(R.id.text_player2);
-        player3Status = (TextView)findViewById(R.id.text_player3);
-        player4Status = (TextView)findViewById(R.id.text_player4);
-        playButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(CreateActivity.this, GameActivity.class);
-                startActivity(intent);
-            }
-        });
+        progressBar = (ProgressBar)findViewById(R.id.create_progress);
         createRoom();
     }
 
@@ -51,7 +47,7 @@ public class CreateActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.d("CreateActivity", "socket exception");
             e.printStackTrace();
-            Toast.makeText(CreateActivity.this, "连接服务器失败", Toast.LENGTH_LONG).show();
+            Toast.makeText(CreateActivity.this, "disconnected", Toast.LENGTH_LONG).show();
             CreateActivity.this.finish();
         }
 
@@ -60,10 +56,32 @@ public class CreateActivity extends AppCompatActivity {
             public void handleMessage(Message msg) {
                 byte instruct = (byte)msg.obj;
                 if (instruct == CodeUtil.READY) {
+                    progressBar.setVisibility(View.GONE);
                     Intent intent = new Intent(CreateActivity.this, GameActivity.class);
+                    intent.putExtra("playerId", playerId);
                     startActivity(intent);
-                } else if (CodeUtil.getHeader(instruct) == CodeUtil.ROOMID) {
-                    roomIdText.append("" + (CodeUtil.getTail(instruct)));
+                }
+                else if (CodeUtil.getHeader(instruct) == CodeUtil.ROOMID) {
+                    int roomId = CodeUtil.getTail(instruct) >> 2;
+                    playerId = CodeUtil.getTail(instruct) & 0x03;
+                    roomIdText.append("" + roomId);
+                    try{
+                        String str = URLEncoder.encode("等待其他玩家", "GBK");
+                        waitStr = URLDecoder.decode(str, "UTF-8");
+                    }catch (UnsupportedEncodingException e){
+                        waitStr = "waiting";
+                    }finally {
+                        Toast.makeText(CreateActivity.this, waitStr, Toast.LENGTH_SHORT).show();
+                    }
+                } else if (instruct == CodeUtil.FAILED1){
+                    try{
+                        String str = URLEncoder.encode("服务器已满", "GBK");
+                        errorStr = URLDecoder.decode(str, "UTF-8");
+                    }catch (UnsupportedEncodingException e){
+                        errorStr = "no room else";
+                    }finally {
+                        Toast.makeText(CreateActivity.this, errorStr, Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
         };

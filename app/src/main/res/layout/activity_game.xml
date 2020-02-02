@@ -26,13 +26,52 @@
             android:layout_centerInParent="true"
             android:textSize="26sp"/>
 
+        <ImageView
+            android:layout_width="50dp"
+            android:layout_height="80dp"
+            android:id="@+id/image_zhu"
+            android:src="@drawable/back"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentRight="true"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/no_fan"
+            android:visibility="gone"
+            android:text="无牌可翻"
+            android:textSize="20sp"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/button_maipai"
+            android:visibility="gone"
+            android:text="埋牌"
+            android:enabled="false"
+            android:textSize="20sp"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/button_chupai"
+            android:visibility="gone"
+            android:text="出牌"
+            android:textSize="20sp"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"/>
+
     </RelativeLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:orientation="horizontal"
-        android:layout_weight="2">
+        android:layout_weight="3">
 
         <LinearLayout
             android:id="@+id/hand_cards_region"
@@ -45,51 +84,77 @@
         </LinearLayout>
 
         <RelativeLayout
-            android:layout_width="120dp"
-            android:layout_height="match_parent"
-            android:paddingTop="30dp"
-            android:paddingBottom="10dp"
-            android:paddingLeft="10dp">
+            android:layout_width="100dp"
+            android:layout_height="match_parent">
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/button_play"
+                android:layout_centerInParent="true"
+                android:visibility="gone"
+                android:text="出牌"
+                android:textSize="26sp"/>
 
         <Button
-            android:layout_width="56dp"
+            android:layout_width="52dp"
             android:layout_height="36dp"
             android:text="红桃"
-            android:layout_alignParentTop="true"
+            android:layout_above="@+id/show_spade"
             android:layout_alignParentLeft="true"
             android:id="@+id/show_heart"
             android:enabled="false"
             android:textSize="14dp"/>
 
         <Button
-            android:layout_width="56dp"
+            android:layout_width="52dp"
             android:layout_height="36dp"
             android:text="梅花"
-            android:layout_alignParentTop="true"
+            android:layout_above="@+id/show_diamond"
             android:layout_alignParentRight="true"
             android:id="@+id/show_club"
             android:enabled="false"
             android:textSize="14dp"/>
 
         <Button
-            android:layout_width="56dp"
+            android:layout_width="52dp"
             android:layout_height="36dp"
             android:text="黑桃"
-            android:layout_alignParentBottom="true"
             android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
             android:id="@+id/show_spade"
             android:enabled="false"
             android:textSize="14dp"/>
 
         <Button
-            android:layout_width="56dp"
+            android:layout_width="52dp"
             android:layout_height="36dp"
             android:text="方块"
-            android:layout_alignParentBottom="true"
             android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
             android:id="@+id/show_diamond"
             android:enabled="false"
             android:textSize="14dp"/>
+
+            <Button
+                android:layout_width="52dp"
+                android:layout_height="36dp"
+                android:text="大王"
+                android:layout_below="@+id/show_spade"
+                android:layout_alignParentLeft="true"
+                android:id="@+id/show_joker_red"
+                android:enabled="false"
+                android:textSize="14dp"/>
+
+            <Button
+                android:layout_width="52dp"
+                android:layout_height="36dp"
+                android:text="小王"
+                android:layout_below="@+id/show_diamond"
+                android:layout_alignParentRight="true"
+                android:id="@+id/show_joker_black"
+                android:enabled="false"
+                android:textSize="14dp"/>
 
         </RelativeLayout>
 
