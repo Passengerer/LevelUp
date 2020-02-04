@@ -74,6 +74,20 @@ public class SocketThread extends Thread {
                 e.printStackTrace();
             }
         }
+        if (stop){
+            try{
+                Thread.sleep(1500);
+                if (!socket.isClosed()){
+                    socket.close();
+                }
+                if (in != null){
+                    in.close();
+                }
+                if (out != null){
+                    out.close();
+                }
+            }catch (Exception e){}
+        }
         Log.d("SocketThread", "thread over");
     }
 }

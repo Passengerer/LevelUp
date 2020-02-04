@@ -15,24 +15,128 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="5">
+        android:layout_weight="9">
 
         <TextView
             android:layout_width="180dp"
             android:layout_height="40dp"
             android:id="@+id/text_score"
             android:text="当前得分: 0"
+            android:layout_margin="20dp"
             android:gravity="center"
             android:layout_centerInParent="true"
             android:textSize="26sp"/>
 
         <ImageView
-            android:layout_width="50dp"
-            android:layout_height="80dp"
+            android:layout_width="30dp"
+            android:layout_height="50dp"
             android:id="@+id/image_zhu"
-            android:src="@drawable/back"
+            android:src="@drawable/back1"
             android:layout_alignParentTop="true"
             android:layout_alignParentRight="true"/>
+
+        <TextView
+            android:layout_width="60dp"
+            android:layout_height="20dp"
+            android:id="@+id/text_level_self"
+            android:text="我方:"
+            android:textSize="16sp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"/>
+
+        <TextView
+            android:layout_width="60dp"
+            android:layout_height="20dp"
+            android:id="@+id/text_level_others"
+            android:layout_below="@id/text_level_self"
+            android:text="对方:"
+            android:textSize="16sp"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:id="@+id/self_play_region"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true">
+
+        <ImageView
+            android:layout_width="50dp"
+            android:layout_height="80dp"
+            android:id="@+id/image_show00"/>
+
+        <ImageView
+            android:layout_width="50dp"
+            android:layout_height="80dp"
+            android:id="@+id/image_show01"
+            android:layout_marginLeft="-30dp"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:id="@+id/right_play_region"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true">
+
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="80dp"
+                android:layout_marginTop="50dp"
+                android:id="@+id/image_show10"/>
+
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="80dp"
+                android:id="@+id/image_show11"
+                android:layout_marginTop="-50dp"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:id="@+id/top_play_region"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true">
+
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="80dp"
+                android:id="@+id/image_show20"/>
+
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="80dp"
+                android:id="@+id/image_show21"
+                android:layout_marginLeft="-30dp"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:id="@+id/left_play_region"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true">
+
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="80dp"
+                android:layout_marginTop="50dp"
+                android:id="@+id/image_show30"/>
+
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="80dp"
+                android:id="@+id/image_show31"
+                android:layout_marginTop="-50dp"/>
+
+        </LinearLayout>
 
         <Button
             android:layout_width="wrap_content"
@@ -65,98 +169,88 @@
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"/>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:gravity="center">
+
+            <Button
+                android:layout_width="58dp"
+                android:layout_height="40dp"
+                android:text="红桃"
+                android:gravity="center"
+                android:id="@+id/show_heart"
+                android:visibility="invisible"
+                android:enabled="false"
+                android:textSize="16dp"/>
+
+            <Button
+                android:layout_width="58dp"
+                android:layout_height="40dp"
+                android:text="梅花"
+                android:gravity="center"
+                android:visibility="invisible"
+                android:enabled="false"
+                android:id="@+id/show_club"
+                android:textSize="16dp"/>
+
+            <Button
+                android:layout_width="58dp"
+                android:layout_height="40dp"
+                android:text="黑桃"
+                android:gravity="center"
+                android:visibility="invisible"
+                android:enabled="false"
+                android:id="@+id/show_spade"
+                android:textSize="16dp"/>
+
+            <Button
+                android:layout_width="58dp"
+                android:layout_height="40dp"
+                android:text="方块"
+                android:gravity="center"
+                android:visibility="invisible"
+                android:enabled="false"
+                android:id="@+id/show_diamond"
+                android:textSize="16dp"/>
+
+            <Button
+                android:layout_width="58dp"
+                android:layout_height="40dp"
+                android:text="大王"
+                android:gravity="center"
+                android:visibility="invisible"
+                android:enabled="false"
+                android:id="@+id/show_joker_red"
+                android:textSize="16dp"/>
+
+            <Button
+                android:layout_width="58dp"
+                android:layout_height="40dp"
+                android:text="小王"
+                android:gravity="center"
+                android:visibility="invisible"
+                android:enabled="false"
+                android:id="@+id/show_joker_black"
+                android:textSize="16dp"/>
+
+        </LinearLayout>
+
     </RelativeLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:orientation="horizontal"
-        android:layout_weight="3">
+        android:layout_weight="5"
+        android:id="@+id/hand_cards_region"
+        android:gravity="bottom|center_horizontal"
+        android:orientation="horizontal">
 
-        <LinearLayout
-            android:id="@+id/hand_cards_region"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="match_parent"
-            android:gravity="bottom|center_horizontal"
-            android:orientation="horizontal">
-
-        </LinearLayout>
-
-        <RelativeLayout
-            android:layout_width="100dp"
-            android:layout_height="match_parent">
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/button_play"
-                android:layout_centerInParent="true"
-                android:visibility="gone"
-                android:text="出牌"
-                android:textSize="26sp"/>
-
-        <Button
-            android:layout_width="52dp"
-            android:layout_height="36dp"
-            android:text="红桃"
-            android:layout_above="@+id/show_spade"
-            android:layout_alignParentLeft="true"
-            android:id="@+id/show_heart"
-            android:enabled="false"
-            android:textSize="14dp"/>
-
-        <Button
-            android:layout_width="52dp"
-            android:layout_height="36dp"
-            android:text="梅花"
-            android:layout_above="@+id/show_diamond"
-            android:layout_alignParentRight="true"
-            android:id="@+id/show_club"
-            android:enabled="false"
-            android:textSize="14dp"/>
-
-        <Button
-            android:layout_width="52dp"
-            android:layout_height="36dp"
-            android:text="黑桃"
-            android:layout_alignParentLeft="true"
-            android:layout_centerVertical="true"
-            android:id="@+id/show_spade"
-            android:enabled="false"
-            android:textSize="14dp"/>
-
-        <Button
-            android:layout_width="52dp"
-            android:layout_height="36dp"
-            android:text="方块"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
-            android:id="@+id/show_diamond"
-            android:enabled="false"
-            android:textSize="14dp"/>
-
-            <Button
-                android:layout_width="52dp"
-                android:layout_height="36dp"
-                android:text="大王"
-                android:layout_below="@+id/show_spade"
-                android:layout_alignParentLeft="true"
-                android:id="@+id/show_joker_red"
-                android:enabled="false"
-                android:textSize="14dp"/>
-
-            <Button
-                android:layout_width="52dp"
-                android:layout_height="36dp"
-                android:text="小王"
-                android:layout_below="@+id/show_diamond"
-                android:layout_alignParentRight="true"
-                android:id="@+id/show_joker_black"
-                android:enabled="false"
-                android:textSize="14dp"/>
-
-        </RelativeLayout>
+        <ImageView
+            android:layout_width="1dp"
+            android:layout_height="1dp"
+            android:layout_marginLeft="50dp"/>
 
     </LinearLayout>
 

@@ -88,4 +88,11 @@ public class CreateActivity extends AppCompatActivity {
         sThread.start();
         sThread.send(CodeUtil.CREATE);
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        sThread.send(CodeUtil.EXIT);
+        sThread.stop = true;
+    }
 }

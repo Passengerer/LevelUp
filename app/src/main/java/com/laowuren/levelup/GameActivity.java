@@ -24,6 +24,9 @@ import com.laowuren.levelup.thread.SocketThread;
 import com.laowuren.levelup.utils.CodeUtil;
 import com.laowuren.levelup.utils.ResourceUtil;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 
 public class GameActivity extends AppCompatActivity implements View.OnClickListener {
@@ -47,14 +50,19 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     private boolean maipaiStat = false;
     private boolean fapaiStat = true;
     private boolean isZhuangJia = false;
+    private boolean isFirstGame = true;
 
     private boolean hasSetZhu = false;
     private boolean hasDing = false;
     private boolean hasFanWang = false;
-    private boolean hasFanHeart = false;
+    /*private boolean hasFanHeart = false;
     private boolean hasFanClub = false;
     private boolean hasFanDiamond = false;
     private boolean hasFanSpade = false;
+    private boolean hasFanJokerBlack = false;
+    private boolean hasFanJokerRed = false;*/
+    private boolean[] hasFanColor;
+    private boolean bizhuang = false;
 
     private CardComparator com;
 
@@ -67,10 +75,20 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     private Button showSpade;
     private Button showJokerRed;
     private Button showJokerBlack;
+    private Button[] showButtons;
     private ImageView zhuImage;
     private Button noZhuFan;
     private Button maipaiButton;
     private Button chupaiButton;
+
+    private ImageView showImage00;
+    private ImageView showImage01;
+    private ImageView showImage10;
+    private ImageView showImage11;
+    private ImageView showImage20;
+    private ImageView showImage21;
+    private ImageView showImage30;
+    private ImageView showImage31;
 
     private DisplayMetrics dm;
     private int imageWidth;
@@ -96,6 +114,14 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         showJokerRed.setOnClickListener(this);
         showJokerBlack = (Button)findViewById(R.id.show_joker_black);
         showJokerBlack.setOnClickListener(this);
+        showButtons = new Button[6];
+        showButtons[0] = showHeart;
+        showButtons[1] = showClub;
+        showButtons[2] = showDiamond;
+        showButtons[3] = showSpade;
+        showButtons[4] = showJokerBlack;
+        showButtons[5] = showJokerRed;
+        hasFanColor = new boolean[4];
         zhuImage = (ImageView)findViewById(R.id.image_zhu);
         noZhuFan = (Button)findViewById(R.id.no_fan);
         noZhuFan.setOnClickListener(this);
@@ -111,13 +137,22 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         duizi = new ArrayList<>();
         playCards = new ArrayList<>();
         dm = getResources().getDisplayMetrics();
-        imageHeight = dm.heightPixels / 9;
-        imageWidth = (int)(dm.widthPixels / 8.5);
+        imageHeight = (int)(dm.widthPixels / 5);
+        imageWidth = (int)(dm.heightPixels / 10);
         leftMargin = imageWidth / 4 * 3 * -1;
         topMargin = imageHeight / 4;
 
         com = new CardComparator();
         com.setZhu(CodeUtil.getCardFromCode(zhu));
+
+        showImage00 = (ImageView)findViewById(R.id.image_show00);
+        showImage01 = (ImageView)findViewById(R.id.image_show01);
+        showImage10 = (ImageView)findViewById(R.id.image_show10);
+        showImage11 = (ImageView)findViewById(R.id.image_show11);
+        showImage20 = (ImageView)findViewById(R.id.image_show20);
+        showImage21 = (ImageView)findViewById(R.id.image_show21);
+        showImage30 = (ImageView)findViewById(R.id.image_show30);
+        showImage31 = (ImageView)findViewById(R.id.image_show31);
 
         setUI();
         initSocket();
@@ -137,17 +172,33 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void handleMessage(Message msg) {
                 byte code = (byte) msg.obj;
+                if (code == CodeUtil.EXIT){
+                    String exitStr = "";
+                    try{
+                        String str = URLEncoder.encode("某玩家退出房间", "GBK");
+                        exitStr = URLDecoder.decode(str, "UTF-8");
+                    }catch (UnsupportedEncodingException e){
+                        exitStr = "someone exited";
+                    }finally {
+                        Toast.makeText(GameActivity.this, exitStr, Toast.LENGTH_SHORT).show();
+                    }
+                    finish();
+                }
                 if (CodeUtil.getHeader(code) == CodeUtil.ZHUSUIT){
-                    Log.d("zhusuit", "zhusuit");
+                    hasSetZhu = true;
                     suit = (byte)(CodeUtil.getTail(code) >> 2);
                     zhu = (byte)(suit << 4 | zhu);
                     // 设置主的图片
-                    setZhuImage(zhu);
                     int showSuitId = CodeUtil.getTail(code) & 0x03;
-                    if (showSuitId == playerId){
+                    setZhuImage(zhu, showSuitId, false);
+                    if (showSuitId == playerId) {
                         selfFan = true;
-                        Log.d("self", "true");
-                        // 自己亮的花色，不能再亮，有对可以定
+                    }else {
+                        selfFan = false;
+                    }
+                    updateShowButtons();
+                    return;
+                    /*    // 自己亮的花色，不能再亮，有对可以定
                         setShowButtonsFalse();
                         if (duizi.contains(zhu)){
                             switch (suit){
@@ -171,81 +222,99 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                         setShowButtonsFalse();
                         if (duizi.contains((byte)(0x00 << 4) | (byte)zhu)){
                             showHeart.setEnabled(true);
+                            showHeart.setVisibility(View.VISIBLE);
                         }
                         if (duizi.contains((byte)(0x01 << 4) | (byte)zhu)){
                             showClub.setEnabled(true);
+                            showClub.setVisibility(View.VISIBLE);
                         }
                         if (duizi.contains((byte)(0x02 << 4) | (byte)zhu)){
                             showDiamond.setEnabled(true);
+                            showDiamond.setVisibility(View.VISIBLE);
                         }
                         if (duizi.contains((byte)(0x03 << 4) | (byte)zhu)){
                             showSpade.setEnabled(true);
+                            showSpade.setVisibility(View.VISIBLE);
                         }
                         if (duizi.contains(0x4d)){
                             showJokerBlack.setEnabled(true);
+                            showJokerBlack.setVisibility(View.VISIBLE);
                         }
                         if (duizi.contains(0x4e)){
                             showJokerRed.setEnabled(true);
+                            showJokerRed.setVisibility(View.VISIBLE);
                         }
                     }
-                    return;
+                    return;*/
                 }
                 if (CodeUtil.getHeader(code) == CodeUtil.FANSUIT){
-                    Log.d("fansuit", "fansuit");
                     suit = (byte)(CodeUtil.getTail(code) >> 2);
                     zhu = (byte)(suit << 4 | zhu);
-                    setZhuImage(zhu);
                     int showSuitId = CodeUtil.getTail(code) & 0x03;
+                    setZhuImage(zhu, showSuitId, true);
                     if (showSuitId == playerId){
                         selfFan = true;
-                        Log.d("self", "true");
                         // 自己反的花色，不能再反
-                        setShowButtonsFalse();
+                        /*setShowButtonsFalse();
                         showJokerBlack.setEnabled(false);
-                        showJokerRed.setEnabled(false);
-                    }else{ // 别人反的花色，如果有对可以再反
+                        showJokerRed.setEnabled(false);*/
+                    }else { // 别人反的花色，如果有对可以再反
                         selfFan = false;
-                        Log.d("self", "false");
+                    }
+                    updateShowButtons();
+                    return;
+                    /*    Log.d("self", "false");
                         setShowButtonsFalse();
                         if (duizi.contains((byte)(0x00 << 4) | (byte)zhu)){
-                            if (!hasFanHeart)
+                            if (!hasFanHeart) {
                                 showHeart.setEnabled(true);
+                                showHeart.setVisibility(View.VISIBLE);
+                            }
                         }
                         if (duizi.contains((byte)(0x01 << 4) | (byte)zhu)){
-                            if (!hasFanClub)
+                            if (!hasFanClub) {
                                 showClub.setEnabled(true);
+                                showClub.setVisibility(View.VISIBLE);
+                            }
                         }
                         if (duizi.contains((byte)(0x02 << 4) | (byte)zhu)){
-                            if (!hasFanDiamond)
+                            if (!hasFanDiamond) {
                                 showDiamond.setEnabled(true);
+                                showDiamond.setVisibility(View.VISIBLE);
+                            }
                         }
                         if (duizi.contains((byte)(0x03 << 4) | (byte)zhu)){
-                            if (!hasFanSpade)
+                            if (!hasFanSpade) {
                                 showSpade.setEnabled(true);
+                                showSpade.setVisibility(View.VISIBLE);
+                            }
                         }
                         if (duizi.contains(0x4d)){
                             showJokerBlack.setEnabled(true);
+                            showJokerBlack.setVisibility(View.VISIBLE);
                         }
                         if (duizi.contains(0x4e)){
                             showJokerRed.setEnabled(true);
+                            showJokerRed.setVisibility(View.VISIBLE);
                         }
                     }
-                    return;
+                    return;*/
                 }
                 if (CodeUtil.getHeader(code) == CodeUtil.DINGSUIT){
-                    Log.d("dingsuit", "dingsuit");
                     hasDing = true;
                     suit = (byte)(CodeUtil.getTail(code) >> 2);
                     zhu = (byte)(suit << 4 | zhu);
-                    setZhuImage(zhu);
                     int showSuitId = CodeUtil.getTail(code) & 0x03;
+                    setZhuImage(zhu, showSuitId, true);
                     if (showSuitId == playerId){
                         selfFan = true;
-                        Log.d("self", "true");
-                        setShowButtonsFalse();
-                    }else{ // 别人定的花色，如果有对王可以反
+                        //setShowButtonsFalse();
+                    }else { // 别人定的花色，如果有对王可以反
                         selfFan = false;
-                        Log.d("self", "false");
+                    }
+                    updateShowButtons();
+                    return;
+                    /*    Log.d("self", "false");
                         setShowButtonsFalse();
                         if (duizi.contains(0x4d)){
                             showJokerBlack.setEnabled(true);
@@ -254,42 +323,54 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                             showJokerRed.setEnabled(true);
                         }
                     }
-                    return;
+                    return;*/
                 }
                 if (CodeUtil.getHeader(code) == CodeUtil.FANWANG){
-                    Log.d("fanwang", "fanwang");
                     hasFanWang = true;
                     int wang = (CodeUtil.getTail(code) >> 2);
                     suit = (byte)(wang == 0 ? 0x04 : 0x05);
-                    if (wang == 0) {
-                        setZhuImage((byte)0x4d);
-                    }else {
-                        setZhuImage((byte)0x4e);
-                    }
                     int showSuitId = CodeUtil.getTail(code) & 0x03;
-                    if (showSuitId == playerId){
+                    if (wang == 0) {
+                        setZhuImage((byte)0x4d, showSuitId, true);
+                    }else {
+                        setZhuImage((byte)0x4e, showSuitId, true);
+                    }
+                    if (showSuitId == playerId) {
                         selfFan = true;
-                        Log.d("self", "true");
-                        setShowButtonsFalse();
+                    }else {
+                        selfFan = false;
+                    }
+                    updateShowButtons();
+                    return;
+                        /*setShowButtonsFalse();
                         showJokerBlack.setEnabled(false);
+                        showJokerBlack.setVisibility(View.INVISIBLE);
                         showJokerRed.setEnabled(false);
+                        showJokerRed.setVisibility(View.INVISIBLE);
                     }else{ // 别人反小王，大王可以反
                         selfFan = false;
                         Log.d("self", "false");
                         setShowButtonsFalse();
                         showJokerBlack.setEnabled(false);
+                        showJokerBlack.setVisibility(View.INVISIBLE);
                         if (wang == 0 && duizi.contains(0x4e)){
                             showJokerRed.setEnabled(true);
+                            showJokerRed.setVisibility(View.VISIBLE);
                         }
                     }
-                    return;
+                    return;*/
                 }
                 if (CodeUtil.getHeader(code) == CodeUtil.BIZHUANG){
-                    Log.d("bizhuang", "bizhuang");
+                    bizhuang = true;
+                    updateShowButtons();
+                    return;
+                    /*
                     if (!isZhuangJia){
                         setShowButtonsFalse();
                         showJokerBlack.setEnabled(false);
+                        showJokerBlack.setVisibility(View.INVISIBLE);
                         showJokerRed.setEnabled(false);
+                        showJokerRed.setVisibility(View.INVISIBLE);
                     }
                     else {
                         boolean canFan = false;
@@ -309,25 +390,30 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                             noZhuFan.setVisibility(View.VISIBLE);
                         }
                     }
-                    return;
+                    return;*/
                 }
                 if (CodeUtil.getHeader(code) == CodeUtil.STARTTURN){
                     Log.d("start turn", "start turn");
                     fapaiStat = false;
                     maipaiStat = true;
                     dapaiStat = false;
+                    setShowImages(View.INVISIBLE);
                     if (CodeUtil.getTail(code) == playerId){
                         selfTurn = true;
-                        setShowButtonsFalse();
-                        showJokerBlack.setEnabled(false);
+                        //setShowButtonsFalse();
+                        /*showJokerBlack.setEnabled(false);
+                        showJokerBlack.setVisibility(View.INVISIBLE);
                         showJokerRed.setEnabled(false);
+                        showJokerRed.setVisibility(View.INVISIBLE);*/
                         maipaiButton.setVisibility(View.VISIBLE);
+                        Log.d("start turn", "self");
                     }else{
                         selfTurn = false;
                         maipaiButton.setVisibility(View.GONE);
                         chupaiButton.setVisibility(View.GONE);
-                        updateImages();
+                        //updateImages();
                     }
+                    updateShowButtons();
                     return;
                 }
                 addCard(code);
@@ -337,24 +423,35 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         Log.d("GameActivity", "socket thread start");
     }
 
-    protected void updateImages(){
-        imageWidth = dm.widthPixels / 8;
+    /*protected void updateImages(){
+        imageWidth = dm.widthPixels / 7;
+        imageHeight = (int)(dm.heightPixels / 8.5);
         leftMargin = imageWidth / 3 * 2 * -1;
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(imageWidth, imageHeight);
         params.leftMargin = leftMargin;
         for (int i = 0; i < handCardsLayout.getChildCount(); ++i){
             ImageView view = (ImageView) handCardsLayout.getChildAt(i);
+            if (i == 1){
+                params.leftMargin = leftMargin * -2;
+            } else params.leftMargin = leftMargin;
             view.setLayoutParams(params);
+        }
+    }*/
+
+    protected void setShowButtonsInvisible(int i){
+        showButtons[i].setEnabled(false);
+        showButtons[i].setVisibility(View.INVISIBLE);
+    }
+
+    protected void setAllShowButtonsInvisible() {
+        for (int i = 0; i < 6; ++i) {
+            setShowButtonsInvisible(i);
         }
     }
 
-    protected void setShowButtonsFalse(){
-        showHeart.setEnabled(false);
-        showClub.setEnabled(false);
-        showDiamond.setEnabled(false);
-        showSpade.setEnabled(false);
-        showJokerBlack.setEnabled(false);
-        showJokerRed.setEnabled(false);
+    protected void setShowButtonsVisible(int i){
+        showButtons[i].setEnabled(true);
+        showButtons[i].setVisibility(View.VISIBLE);
     }
 
     protected void setShowButtonsGone(){
@@ -364,6 +461,82 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         showSpade.setVisibility(View.GONE);
         showJokerBlack.setVisibility(View.GONE);
         showJokerRed.setVisibility(View.GONE);
+    }
+
+    protected void updateShowButtons() {
+        Log.d("selfTurn0", "" + selfTurn);
+        if (selfTurn){
+            setAllShowButtonsInvisible();
+            Log.d("selfTurn1", "" + selfTurn);
+            return;
+        }
+        if (!hasSetZhu) {
+            for (int i = 0; i < 4; ++i) {
+                if (hasCard((byte) ((i << 4) | (byte) zhu))) {
+                    setShowButtonsVisible(i);
+                }
+            }
+            /*if (hasCard((byte)((0x00 << 4) | (byte)zhu))){
+                setShowButtonsVisible(0);
+            }
+            if (hasCard((byte)((0x01 << 4) | (byte)zhu))){
+                setShowButtonsVisible(1);
+            }
+            if (hasCard((byte)((0x02 << 4) | (byte)zhu))){
+                setShowButtonsVisible(2);
+            }
+            if (hasCard((byte)((0x03 << 4) | (byte)zhu))){
+                setShowButtonsVisible(3);
+            }*/
+        }
+        if (hasSetZhu && selfFan && !hasDing) {
+            setAllShowButtonsInvisible();
+            if (hasDuizi((byte) zhu)) {
+                setShowButtonsVisible(zhu >> 4);
+            }
+        }
+        if (hasSetZhu && selfFan && hasDing) {
+            setAllShowButtonsInvisible();
+        }
+        if (hasSetZhu && !selfFan && !hasDing) {
+            setAllShowButtonsInvisible();
+            if (!isFirstGame) {
+                if (hasDuizi((byte) 0x4d)) {
+                    setShowButtonsVisible(4);
+                }
+                if (hasDuizi((byte) 0x4e)) {
+                    setShowButtonsVisible(5);
+                }
+            }
+            for (int i = 0; i < 4; ++i){
+                if (hasDuizi((byte)(i << 4 | zhu)) && !hasFanColor[i]){
+                    setShowButtonsVisible(i);
+                }
+            }
+            /*if (hasDuizi((byte)(0x00 << 4 | zhu))){
+                setShowButtonsVisible(0);
+            }*/
+        }
+        if (hasSetZhu && !selfFan && hasDing){
+            setAllShowButtonsInvisible();
+            if (!isFirstGame){
+                if (hasDuizi((byte) 0x4d)) {
+                    setShowButtonsVisible(4);
+                }
+                if (hasDuizi((byte) 0x4e)) {
+                    setShowButtonsVisible(5);
+                }
+            }
+        }
+        if (hasSetZhu && selfFan && hasFanWang){
+            setAllShowButtonsInvisible();
+        }
+        if (hasSetZhu && !selfFan && hasFanWang){
+            setAllShowButtonsInvisible();
+            if (hasDuizi((byte) 0x4e)) {
+                setShowButtonsVisible(5);
+            }
+        }
     }
 
     protected void addCard(byte code){
@@ -385,24 +558,28 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         }
         */
         // 有当前等级牌可以亮花色
-        if (CodeUtil.getTail(code) == CodeUtil.getTail(zhu)){
-            if (selfFan == false) {
+        /*if (CodeUtil.getTail(code) == CodeUtil.getTail(zhu)){
+            if (!hasSetZhu && selfFan == false) {
                 switch (CodeUtil.getHigher(code)) {
                     case 0:
                         showHeart.setEnabled(true);
+                        showHeart.setVisibility(View.VISIBLE);
                         break;
                     case 1:
                         showClub.setEnabled(true);
+                        showClub.setVisibility(View.VISIBLE);
                         break;
                     case 2:
                         showDiamond.setEnabled(true);
+                        showDiamond.setVisibility(View.VISIBLE);
                         break;
                     case 3:
                         showSpade.setEnabled(true);
+                        showSpade.setVisibility(View.VISIBLE);
                         break;
                 }
             }
-        }
+        }*/
         int index = getIndex(code);
 
         MyImageView imageView = new MyImageView(GameActivity.this);
@@ -437,13 +614,14 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-        LinearLayout.LayoutParams params =  new LinearLayout.LayoutParams(imageWidth, imageHeight);
-        if (index > 0){
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(imageWidth, imageHeight);
+        if (index > 0) {
             params.leftMargin = leftMargin;
             imageView.setLayoutParams(params);
             handCardsLayout.addView(imageView, index);
-        }else if(index == 0) {
-            params.leftMargin = 0;
+        }
+        /*}else if(index == 0) {
+            params.leftMargin = leftMargin * -2;
             imageView.setLayoutParams(params);
             handCardsLayout.addView(imageView, index);
 
@@ -452,27 +630,51 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                 params.leftMargin = leftMargin;
                 secondCard.setLayoutParams(params);
             }
-        }
-        if (handCards.contains(code)){
+        }*/
+        if (handCards.contains(code)) {
             duizi.add(code);
-            if (hasDuizi((byte)((0x00 << 4) | (byte)zhu))){
-                if (!hasFanHeart)
-                    showHeart.setEnabled(true);
-            }
-            if (hasDuizi((byte)((0x01 << 4) | (byte)zhu))){
-                if (!hasFanClub)
-                    showClub.setEnabled(true);
-            }
-            if (hasDuizi((byte)((0x02 << 4) | (byte)zhu))){
-                if (!hasFanDiamond)
-                    showDiamond.setEnabled(true);
-            }
-            if (hasDuizi((byte)((0x03 << 4) | (byte)zhu))){
-                if (!hasFanSpade)
-                    showSpade.setEnabled(true);
-            }
         }
-        handCards.add(index, code);
+        /*if (!selfFan) {
+            if (hasDuizi((byte) ((0x00 << 4) | (byte) zhu))) {
+                if (!hasFanHeart) {
+                    showHeart.setEnabled(true);
+                    showHeart.setVisibility(View.VISIBLE);
+                }
+
+            }
+            if (hasDuizi((byte) ((0x01 << 4) | (byte) zhu))) {
+                if (!hasFanClub) {
+                    showClub.setEnabled(true);
+                    showClub.setVisibility(View.VISIBLE);
+                }
+            }
+            if (hasDuizi((byte) ((0x02 << 4) | (byte) zhu))) {
+                if (!hasFanDiamond) {
+                    showDiamond.setEnabled(true);
+                    showDiamond.setVisibility(View.VISIBLE);
+                }
+            }
+            if (hasDuizi((byte) ((0x03 << 4) | (byte) zhu))) {
+                if (!hasFanSpade) {
+                    showSpade.setEnabled(true);
+                    showSpade.setVisibility(View.VISIBLE);
+                }
+            }
+            if (hasDuizi((byte) 0x4d)) {
+                if (!hasFanJokerBlack) {
+                    showJokerBlack.setEnabled(true);
+                    showJokerBlack.setVisibility(View.VISIBLE);
+                }
+            }
+            if (hasDuizi((byte) 0x4e)) {
+                if (!hasFanJokerRed) {
+                    showJokerRed.setEnabled(true);
+                    showJokerRed.setVisibility(View.VISIBLE);
+                }
+            }
+        }*/
+        handCards.add(index - 1, code);
+        updateShowButtons();
     }
 
     protected boolean hasCard(byte code){
@@ -484,9 +686,9 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     protected int getIndex(byte code){
-        int index = 0;
+        int index = 1;
         if (handCards.isEmpty()){
-            return 0;
+            return 1;
         }
         for (byte b : handCards){
             Card c1 = CodeUtil.getCardFromCode(code);
@@ -531,28 +733,28 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.show_heart:
                 sThread.send((byte)(header | (byte)0x00));
                 if (header == CodeUtil.FANSUIT) {
-                    hasFanHeart = true;
+                    hasFanColor[0] = true;
                     findViewById(R.id.show_heart).setEnabled(false);
                 }
                 break;
             case R.id.show_club:
                 sThread.send((byte)(header | (byte)0x01));
                 if (header == CodeUtil.FANSUIT) {
-                    hasFanClub = true;
+                    hasFanColor[1] = true;
                     findViewById(R.id.show_club).setEnabled(false);
                 }
                 break;
             case R.id.show_diamond:
                 sThread.send((byte)(header | (byte)0x02));
                 if (header == CodeUtil.FANSUIT) {
-                    hasFanDiamond = true;
+                    hasFanColor[2] = true;
                     findViewById(R.id.show_diamond).setEnabled(false);
                 }
                 break;
             case R.id.show_spade:
                 sThread.send((byte)(header | (byte)0x03));
                 if (header == CodeUtil.FANSUIT) {
-                    hasFanSpade = true;
+                    hasFanColor[3] = true;
                     findViewById(R.id.show_spade).setEnabled(false);
                 }
                 break;
@@ -577,7 +779,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                     handCardsLayout.removeView(playImages.get(i));
                 }
                 setSelfTurnFalse();
-                updateImages();
+                //updateImages();
                 break;
             case R.id.button_chupai:
                 break;
@@ -590,9 +792,73 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         chupaiButton.setVisibility(View.GONE);
     }
 
-    protected void setZhuImage(byte code){
+    protected void setShowImages(int i){
+        showImage00.setVisibility(i);
+        showImage01.setVisibility(i);
+        showImage10.setVisibility(i);
+        showImage11.setVisibility(i);
+        showImage20.setVisibility(i);
+        showImage21.setVisibility(i);
+        showImage30.setVisibility(i);
+        showImage31.setVisibility(i);
+    }
+
+    protected void setZhuImage(byte code, int id, boolean dui){
         String zhuName = CodeUtil.getCardFromCode(code).toString().toLowerCase();
+        setShowImages(View.INVISIBLE);
+        int loc = id - playerId;
+        loc = loc < 0 ? loc + 4 : loc;
+        switch (loc){
+            case 0: // 自己
+                showImage00.setImageBitmap(BitmapFactory.decodeResource(getResources(),
+                        ResourceUtil.getIDByName(zhuName)));
+                showImage00.setVisibility(View.VISIBLE);
+                if (dui){
+                    showImage01.setImageBitmap(BitmapFactory.decodeResource(getResources(),
+                            ResourceUtil.getIDByName(zhuName)));
+                    showImage01.setVisibility(View.VISIBLE);
+                }
+                break;
+            case 1: // 下家
+                showImage10.setImageBitmap(BitmapFactory.decodeResource(getResources(),
+                        ResourceUtil.getIDByName(zhuName)));
+                showImage10.setVisibility(View.VISIBLE);
+                if (dui){
+                    showImage11.setImageBitmap(BitmapFactory.decodeResource(getResources(),
+                            ResourceUtil.getIDByName(zhuName)));
+                    showImage11.setVisibility(View.VISIBLE);
+                }
+                break;
+            case 2: // 对家
+                showImage20.setImageBitmap(BitmapFactory.decodeResource(getResources(),
+                        ResourceUtil.getIDByName(zhuName)));
+                showImage20.setVisibility(View.VISIBLE);
+                if (dui){
+                    showImage21.setImageBitmap(BitmapFactory.decodeResource(getResources(),
+                            ResourceUtil.getIDByName(zhuName)));
+                    showImage21.setVisibility(View.VISIBLE);
+                }
+                break;
+            case 3: // 上家
+                showImage30.setImageBitmap(BitmapFactory.decodeResource(getResources(),
+                        ResourceUtil.getIDByName(zhuName)));
+                showImage30.setVisibility(View.VISIBLE);
+                if (dui){
+                    showImage31.setImageBitmap(BitmapFactory.decodeResource(getResources(),
+                            ResourceUtil.getIDByName(zhuName)));
+                    showImage31.setVisibility(View.VISIBLE);
+                }
+                break;
+        }
         zhuImage.setImageBitmap(BitmapFactory.decodeResource(getResources(),
                 ResourceUtil.getIDByName(zhuName)));
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d("GameActivity", "destroy");
+        sThread.send(CodeUtil.EXIT);
+        sThread.stop = true;
     }
 }
