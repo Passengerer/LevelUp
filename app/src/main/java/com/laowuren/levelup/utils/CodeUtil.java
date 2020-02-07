@@ -16,15 +16,19 @@ public class CodeUtil {
     public final static byte FAILED2 = (byte)0xf3;	// -13 房间人数已满
     public final static byte FAILED3 = (byte)0xf4;	// -12 错误请求
     public final static byte SUCCESS = (byte)0xf5;	// -11 请求成功
-    public final static byte EXIT = (byte)0xf6;	// -10
+    public final static byte EXIT = (byte)0xff;	//
+    public final static byte BUFAN = (byte)0xf7;
 
-    public final static byte ROOMID = (byte)0xe0;	// -32 房间id 1110 00 00 后4位中前两位表示房间号，后两位表示玩家id
+    public final static byte ROOMID = (byte)0x60;	// -32 房间id 0110 00 00 后4位中前两位表示房间号，后两位表示玩家id
     public final static byte ZHUSUIT = (byte)0xd0;	//  主牌花色 1101 0000 后4位表示花色, 4-小王, 5-大王
     public final static byte FANSUIT = (byte)0xc0;	//  反牌花色 1100 0000 后4位表示花色, 4-小王, 5-大王
     public final static byte DINGSUIT = (byte)0xb0;	//  定牌花色 1011 0000 后4位表示花色
     public final static byte FANWANG = (byte)0xa0;	//  用王反 1010 0000 后4位表示大小王，0-小王，1大王
-    public final static byte BIZHUANG = (byte)0x90;	//  逼庄
-    public final static byte STARTTURN = (byte)0x80;	//  开始轮流说话
+    public final static byte BIZHUANG = (byte)0x90;	//  逼庄 1001
+    public final static byte MAIPAITURN = (byte)0x80;	//  开始轮流说话 1000
+    public final static byte PLAYTURN = (byte)0x70;	    // 	开始轮流打牌 0111
+    public final static byte PLAYCOUNT = (byte)0xe0;	// 	1110 0000 前3位header 后4位表示打牌数量
+    public final static byte FIRSTPLAY = (byte)0x50;    //  第一个出牌者
 
     public static byte getHeader(byte b){
         return (byte)(b & 0xf0);

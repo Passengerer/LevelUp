@@ -14,10 +14,6 @@ import android.widget.Toast;
 import com.laowuren.levelup.thread.SocketThread;
 import com.laowuren.levelup.utils.CodeUtil;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-
 public class CreateActivity extends AppCompatActivity {
 
     private SocketThread sThread = null;
@@ -25,8 +21,8 @@ public class CreateActivity extends AppCompatActivity {
     private TextView roomIdText;
     private ProgressBar progressBar;
 
-    private String waitStr;
-    private String errorStr;
+    private final String waitStr = "等待其他玩家";
+    private final String errorStr = "服务器已满";
 
     private int playerId;
 
@@ -38,6 +34,7 @@ public class CreateActivity extends AppCompatActivity {
 
         roomIdText = (TextView)findViewById(R.id.text_roomId);
         progressBar = (ProgressBar)findViewById(R.id.create_progress);
+
         createRoom();
     }
 
@@ -65,23 +62,9 @@ public class CreateActivity extends AppCompatActivity {
                     int roomId = CodeUtil.getTail(instruct) >> 2;
                     playerId = CodeUtil.getTail(instruct) & 0x03;
                     roomIdText.append("" + roomId);
-                    try{
-                        String str = URLEncoder.encode("等待其他玩家", "GBK");
-                        waitStr = URLDecoder.decode(str, "UTF-8");
-                    }catch (UnsupportedEncodingException e){
-                        waitStr = "waiting";
-                    }finally {
-                        Toast.makeText(CreateActivity.this, waitStr, Toast.LENGTH_SHORT).show();
-                    }
+                    Toast.makeText(CreateActivity.this, waitStr, Toast.LENGTH_SHORT).show();
                 } else if (instruct == CodeUtil.FAILED1){
-                    try{
-                        String str = URLEncoder.encode("服务器已满", "GBK");
-                        errorStr = URLDecoder.decode(str, "UTF-8");
-                    }catch (UnsupportedEncodingException e){
-                        errorStr = "no room else";
-                    }finally {
-                        Toast.makeText(CreateActivity.this, errorStr, Toast.LENGTH_SHORT).show();
-                    }
+                    Toast.makeText(CreateActivity.this, errorStr, Toast.LENGTH_SHORT).show();
                 }
             }
         };

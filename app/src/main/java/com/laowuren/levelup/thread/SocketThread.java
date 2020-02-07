@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 
 /**
  * Created by Administrator on 2020/1/26/026.
@@ -24,6 +25,22 @@ public class SocketThread extends Thread {
     private Socket socket;
     private OutputStream out;
     private InputStream in;
+
+    public void sendCards(ArrayList<Byte> cards, boolean isChupai){
+        Log.d("send array", cards.toString());
+        if (isChupai) {
+            send((byte) (CodeUtil.PLAYCOUNT | cards.size()));
+        }
+        try{
+            Thread.sleep(100);
+        }catch (Exception e){}
+        for (byte card : cards){
+            send(card);
+            try{
+                Thread.sleep(50);
+            }catch (Exception e){}
+        }
+    }
 
     public void send(final byte code){
         new Thread(new Runnable() {
@@ -40,6 +57,7 @@ public class SocketThread extends Thread {
                 try{
                     out.write(code);
                     out.flush();
+                    Log.d("send", "" + code);
                 }catch (Exception e){
                     Log.d("SocketThread", "write exception");
                     e.printStackTrace();

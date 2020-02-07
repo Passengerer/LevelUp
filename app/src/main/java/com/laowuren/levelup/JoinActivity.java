@@ -16,24 +16,19 @@ import android.widget.Toast;
 import com.laowuren.levelup.thread.SocketThread;
 import com.laowuren.levelup.utils.CodeUtil;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-
 public class JoinActivity extends AppCompatActivity {
 
     private SocketThread sThread;
 
+    private final String inputId = "«Î ‰»Î∑øº‰∫≈";
+    private final String inputError = " ‰»Î¥ÌŒÛ";
+    private final String fullPeople = "∑øº‰»À ˝“—¬˙";
+    private final String noSuchRoom = "√ª”–∏√∑øº‰";
+    private final String successStr = "º”»Î≥…π¶£¨µ»¥˝∆‰À˚ÕÊº“";
+
     private EditText roomIdEdit;
     private Button joinButton;
     private ProgressBar progressBar;
-
-    private String fullStr;
-    private String noRoomIdStr;
-    private String successStr;
-
-    private String inputErrorStr;
-    private String noInputStr;
 
     private int playerId;
 
@@ -49,32 +44,19 @@ public class JoinActivity extends AppCompatActivity {
             public void onClick(View v) {
                 int roomId = -1;
                 if (TextUtils.isEmpty(roomIdEdit.getText())){
-                    try{
-                        String str = URLEncoder.encode("ËØ∑ËæìÂÖ•ÊàøÈó¥Âè∑", "GBK");
-                        noInputStr = URLDecoder.decode(str, "UTF-8");
-                    }catch (UnsupportedEncodingException e){
-                        noInputStr = "please input room id";
-                    }finally {
-                        Toast.makeText(JoinActivity.this, noInputStr, Toast.LENGTH_SHORT).show();
-                    }
+                    Toast.makeText(JoinActivity.this, inputId, Toast.LENGTH_SHORT).show();
                     return;
                 }
                 try{
                     roomId = Integer.parseInt(roomIdEdit.getText().toString());
                 }catch (Exception e){
-                    try{
-                        String str = URLEncoder.encode("ËæìÂÖ•ÈîôËØØ", "GBK");
-                        inputErrorStr = URLDecoder.decode(str, "UTF-8");
-                    }catch (UnsupportedEncodingException ex){
-                        inputErrorStr = "input error";
-                    }finally {
-                        Toast.makeText(JoinActivity.this, inputErrorStr, Toast.LENGTH_SHORT).show();
-                    }
+                    Toast.makeText(JoinActivity.this, inputError, Toast.LENGTH_SHORT).show();
                     return;
                 }
                 sThread.send((byte)(CodeUtil.ROOMID | (byte)roomId));
             }
         });
+
         joinRoom();
     }
 
@@ -99,40 +81,27 @@ public class JoinActivity extends AppCompatActivity {
                     startActivity(intent);
                 }
                 else if (code == CodeUtil.FAILED2){
-                    try{
-                        String str = URLEncoder.encode("ÊàøÈó¥‰∫∫Êï∞Â∑≤Êª°", "GBK");
-                        fullStr = URLDecoder.decode(str, "UTF-8");
-                    }catch (UnsupportedEncodingException e){
-                        fullStr = "full";
-                    }finally {
-                        Toast.makeText(JoinActivity.this, fullStr, Toast.LENGTH_SHORT).show();
-                    }
+                    Toast.makeText(JoinActivity.this, fullPeople, Toast.LENGTH_SHORT).show();
                 }
                 else if (code == CodeUtil.FAILED3){
-                    try{
-                        String str = URLEncoder.encode("Êó†ËØ•ÊàøÈó¥", "GBK");
-                        noRoomIdStr = URLDecoder.decode(str, "UTF-8");
-                    }catch (UnsupportedEncodingException e){
-                        noRoomIdStr = "no such room";
-                    }finally {
-                        Toast.makeText(JoinActivity.this, noRoomIdStr, Toast.LENGTH_SHORT).show();
-                    }
+                    Toast.makeText(JoinActivity.this, noSuchRoom, Toast.LENGTH_SHORT).show();
                 }
                 else if (CodeUtil.getHeader(code) == CodeUtil.ROOMID) {
                     playerId = CodeUtil.getTail(code) & 0x03;
-                    try {
-                        String str = URLEncoder.encode("Âä†ÂÖ•ÊàêÂäüÔºåÁ≠âÂæÖÂÖ∂‰ªñÁé©ÂÆ∂", "GBK");
-                        successStr = URLDecoder.decode(str, "UTF-8");
-                    } catch (UnsupportedEncodingException e) {
-                        successStr = "success";
-                    } finally {
+                    if (playerId != 3)
                         Toast.makeText(JoinActivity.this, successStr, Toast.LENGTH_SHORT).show();
-                        progressBar.setVisibility(View.VISIBLE);
-                        joinButton.setEnabled(false);
-                    }
+                    progressBar.setVisibility(View.VISIBLE);
+                    joinButton.setEnabled(false);
                 }
             }
         };
         sThread.start();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        sThread.send(CodeUtil.EXIT);
+        sThread.stop = true;
     }
 }

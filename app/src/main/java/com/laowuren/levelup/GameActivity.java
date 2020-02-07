@@ -18,77 +18,69 @@ import android.widget.Toast;
 
 import com.laowuren.levelup.others.Card;
 import com.laowuren.levelup.others.CardComparator;
+import com.laowuren.levelup.others.CodeComparator;
 import com.laowuren.levelup.others.MyImageView;
 import com.laowuren.levelup.others.Rank;
+import com.laowuren.levelup.others.Suit;
 import com.laowuren.levelup.thread.SocketThread;
 import com.laowuren.levelup.utils.CodeUtil;
+import com.laowuren.levelup.utils.PlayRuler;
 import com.laowuren.levelup.utils.ResourceUtil;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 
 public class GameActivity extends AppCompatActivity implements View.OnClickListener {
 
     private SocketThread sThread;
+    private final String strBreakRules = "≥ˆ≈∆∑∏πÊ";
 
-    private int playerId;     // Áé©ÂÆ∂id
+    private int playerId;     // ÕÊº“id
+    private int whoPlay;      // µ±«∞≥ˆ≈∆ÕÊº“id
+    private int firstPlayerId;  // √ø¬÷µ⁄“ª∏ˆ≥ˆ≈∆µƒÕÊº“id
     private ArrayList<Byte> handCards;
-    private ArrayList<Byte> duizi;      // ÂØπÂ≠ê
+    private ArrayList<Byte> duizi;      // ∂‘◊”
+    private ArrayList<Byte> firstCards;
+    private int firstCardsCount;
     private int zhuCount = 0;
     private int heartCount = 0;
     private int clubCount = 0;
     private int diamondCount = 0;
     private int spadeCount = 0;
     private ArrayList<Byte> playCards;
-    private byte zhu = 0x00;
-    private byte suit = 0x10;
+    private byte zhu = 0x00;        // ”––°÷˜ ±¥Ê≈∆(ª®…´∫Õµ»º∂)£¨Œﬁ–°÷˜ ±¥Êµ»º∂
+    private byte suit = 0x10;       // ¥Êª®…´£¨4¥˙±Ì–°Õı£¨5¥˙±Ì¥ÛÕı
+    private PlayRuler ruler;
     private boolean selfFan = false;
     private boolean selfTurn = false;
-    private boolean dapaiStat = false;
-    private boolean maipaiStat = false;
-    private boolean fapaiStat = true;
+    private GAMESTATE stat = GAMESTATE.DEAL;
     private boolean isZhuangJia = false;
     private boolean isFirstGame = true;
 
     private boolean hasSetZhu = false;
     private boolean hasDing = false;
     private boolean hasFanWang = false;
-    /*private boolean hasFanHeart = false;
-    private boolean hasFanClub = false;
-    private boolean hasFanDiamond = false;
-    private boolean hasFanSpade = false;
-    private boolean hasFanJokerBlack = false;
-    private boolean hasFanJokerRed = false;*/
     private boolean[] hasFanColor;
     private boolean bizhuang = false;
+    private boolean selfMaipai = false;
 
     private CardComparator com;
+    private CodeComparator codeCom;
 
     private TextView scoreText;
     private LinearLayout handCardsLayout;
+    private LinearLayout[] playCardsLayouts;
     private ArrayList<ImageView> playImages;
-    private Button showHeart;
-    private Button showClub;
-    private Button showDiamond;
-    private Button showSpade;
-    private Button showJokerRed;
-    private Button showJokerBlack;
+    private LinearLayout.LayoutParams params;
+    private LinearLayout.LayoutParams smallParams;
     private Button[] showButtons;
+    private Button showBuFan;
     private ImageView zhuImage;
     private Button noZhuFan;
     private Button maipaiButton;
     private Button chupaiButton;
 
-    private ImageView showImage00;
-    private ImageView showImage01;
-    private ImageView showImage10;
-    private ImageView showImage11;
-    private ImageView showImage20;
-    private ImageView showImage21;
-    private ImageView showImage30;
-    private ImageView showImage31;
+    private ImageView[] showImages;
+    private ImageView[] turnImage;
 
     private DisplayMetrics dm;
     private int imageWidth;
@@ -102,25 +94,21 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
         scoreText = (TextView)findViewById(R.id.text_score);
-        showHeart = (Button)findViewById(R.id.show_heart);
-        showHeart.setOnClickListener(this);
-        showClub = (Button)findViewById(R.id.show_club);
-        showClub.setOnClickListener(this);
-        showDiamond = (Button)findViewById(R.id.show_diamond);
-        showDiamond.setOnClickListener(this);
-        showSpade = (Button)findViewById(R.id.show_spade);
-        showSpade.setOnClickListener(this);
-        showJokerRed = (Button)findViewById(R.id.show_joker_red);
-        showJokerRed.setOnClickListener(this);
-        showJokerBlack = (Button)findViewById(R.id.show_joker_black);
-        showJokerBlack.setOnClickListener(this);
         showButtons = new Button[6];
-        showButtons[0] = showHeart;
-        showButtons[1] = showClub;
-        showButtons[2] = showDiamond;
-        showButtons[3] = showSpade;
-        showButtons[4] = showJokerBlack;
-        showButtons[5] = showJokerRed;
+        showButtons[0] = (Button)findViewById(R.id.show_heart);
+        showButtons[0].setOnClickListener(this);
+        showButtons[1] = (Button)findViewById(R.id.show_club);
+        showButtons[1].setOnClickListener(this);
+        showButtons[2] = (Button)findViewById(R.id.show_diamond);
+        showButtons[2].setOnClickListener(this);
+        showButtons[3] = (Button)findViewById(R.id.show_spade);
+        showButtons[3].setOnClickListener(this);
+        showButtons[4] = (Button)findViewById(R.id.show_joker_black);
+        showButtons[4].setOnClickListener(this);
+        showButtons[5] = (Button)findViewById(R.id.show_joker_red);
+        showButtons[5].setOnClickListener(this);
+        showBuFan = (Button)findViewById(R.id.show_bufan);
+        showBuFan.setOnClickListener(this);
         hasFanColor = new boolean[4];
         zhuImage = (ImageView)findViewById(R.id.image_zhu);
         noZhuFan = (Button)findViewById(R.id.no_fan);
@@ -130,29 +118,49 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         chupaiButton = (Button)findViewById(R.id.button_chupai);
         chupaiButton.setOnClickListener(this);
         handCardsLayout = (LinearLayout)findViewById(R.id.hand_cards_region);
+        playCardsLayouts = new LinearLayout[4];
+        playCardsLayouts[0] = (LinearLayout)findViewById(R.id.self_play_region);
+        playCardsLayouts[1] = (LinearLayout)findViewById(R.id.right_play_region);
+        playCardsLayouts[2] = (LinearLayout)findViewById(R.id.top_play_region);
+        playCardsLayouts[3] = (LinearLayout)findViewById(R.id.left_play_region);
         playImages = new ArrayList<>();
         playerId = getIntent().getIntExtra("playerId", -1);
         Log.d("playerId", playerId + "");
         handCards = new ArrayList<>();
         duizi = new ArrayList<>();
         playCards = new ArrayList<>();
+        firstCards = new ArrayList<>();
         dm = getResources().getDisplayMetrics();
-        imageHeight = (int)(dm.widthPixels / 5);
-        imageWidth = (int)(dm.heightPixels / 10);
-        leftMargin = imageWidth / 4 * 3 * -1;
+        imageWidth = (int)(dm.heightPixels / 11.64);
+        imageHeight = (int)(imageWidth / 2 * 3);
+        leftMargin = imageWidth / 3 * 2 * -1;
         topMargin = imageHeight / 4;
+        LinearLayout.LayoutParams p = (LinearLayout.LayoutParams)handCardsLayout.getLayoutParams();
+        p.height = imageHeight / 3 * 4;
+        handCardsLayout.setLayoutParams(p);
+        params = new LinearLayout.LayoutParams(imageWidth, imageHeight);
+        params.leftMargin = leftMargin;
+        smallParams = new LinearLayout.LayoutParams(imageWidth / 5 * 4, imageHeight / 5 * 4);
+        smallParams.leftMargin = smallParams.width / 3 * 2 * -1;
 
         com = new CardComparator();
         com.setZhu(CodeUtil.getCardFromCode(zhu));
+        ruler = new PlayRuler();
+        codeCom = new CodeComparator();
 
-        showImage00 = (ImageView)findViewById(R.id.image_show00);
-        showImage01 = (ImageView)findViewById(R.id.image_show01);
-        showImage10 = (ImageView)findViewById(R.id.image_show10);
-        showImage11 = (ImageView)findViewById(R.id.image_show11);
-        showImage20 = (ImageView)findViewById(R.id.image_show20);
-        showImage21 = (ImageView)findViewById(R.id.image_show21);
-        showImage30 = (ImageView)findViewById(R.id.image_show30);
-        showImage31 = (ImageView)findViewById(R.id.image_show31);
+        showImages = new ImageView[8];
+        showImages[0] = (ImageView)findViewById(R.id.image_show00);
+        showImages[1] = (ImageView)findViewById(R.id.image_show01);
+        showImages[2] = (ImageView)findViewById(R.id.image_show10);
+        showImages[3] = (ImageView)findViewById(R.id.image_show11);
+        showImages[4] = (ImageView)findViewById(R.id.image_show20);
+        showImages[5] = (ImageView)findViewById(R.id.image_show21);
+        showImages[6] = (ImageView)findViewById(R.id.image_show30);
+        showImages[7] = (ImageView)findViewById(R.id.image_show31);
+        turnImage = new ImageView[3];
+        turnImage[0] = (ImageView)findViewById(R.id.turn_right);
+        turnImage[1] = (ImageView)findViewById(R.id.turn_top);
+        turnImage[2] = (ImageView)findViewById(R.id.turn_left);
 
         setUI();
         initSocket();
@@ -164,7 +172,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         } catch (Exception e) {
             Log.d("GameActivity", "socket exception");
             e.printStackTrace();
-            Toast.makeText(GameActivity.this, "ËøûÊé•ÊúçÂä°Âô®Â§±Ë¥•", Toast.LENGTH_LONG).show();
+            Toast.makeText(GameActivity.this, "disconnected", Toast.LENGTH_LONG).show();
             GameActivity.this.finish();
         }
 
@@ -173,22 +181,16 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
             public void handleMessage(Message msg) {
                 byte code = (byte) msg.obj;
                 if (code == CodeUtil.EXIT){
-                    String exitStr = "";
-                    try{
-                        String str = URLEncoder.encode("ÊüêÁé©ÂÆ∂ÈÄÄÂá∫ÊàøÈó¥", "GBK");
-                        exitStr = URLDecoder.decode(str, "UTF-8");
-                    }catch (UnsupportedEncodingException e){
-                        exitStr = "someone exited";
-                    }finally {
-                        Toast.makeText(GameActivity.this, exitStr, Toast.LENGTH_SHORT).show();
-                    }
+                    Toast.makeText(GameActivity.this, "ƒ≥ÕÊº““—ÕÀ≥ˆ", Toast.LENGTH_SHORT).show();
                     finish();
+                    return;
                 }
                 if (CodeUtil.getHeader(code) == CodeUtil.ZHUSUIT){
+                    Log.d("liang", "has liang");
                     hasSetZhu = true;
                     suit = (byte)(CodeUtil.getTail(code) >> 2);
                     zhu = (byte)(suit << 4 | zhu);
-                    // ËÆæÁΩÆ‰∏ªÁöÑÂõæÁâá
+                    // ¡¡≈∆’ﬂid
                     int showSuitId = CodeUtil.getTail(code) & 0x03;
                     setZhuImage(zhu, showSuitId, false);
                     if (showSuitId == playerId) {
@@ -198,109 +200,23 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                     }
                     updateShowButtons();
                     return;
-                    /*    // Ëá™Â∑±‰∫ÆÁöÑËä±Ëâ≤Ôºå‰∏çËÉΩÂÜç‰∫ÆÔºåÊúâÂØπÂèØ‰ª•ÂÆö
-                        setShowButtonsFalse();
-                        if (duizi.contains(zhu)){
-                            switch (suit){
-                                case 0:
-                                    showHeart.setEnabled(true);
-                                    break;
-                                case 1:
-                                    showClub.setEnabled(true);
-                                    break;
-                                case 2:
-                                    showDiamond.setEnabled(true);
-                                    break;
-                                case 3:
-                                    showSpade.setEnabled(true);
-                                    break;
-                            }
-                        }
-                    }else{ // Âà´‰∫∫‰∫ÆÁöÑËä±Ëâ≤ÔºåÂ¶ÇÊûúÊúâÂØπÂèØ‰ª•ÂèçÔºåÊ≤°ÊúâÂàô‰∏çËÉΩ‰∫Æ
-                        selfFan = false;
-                        Log.d("self", "false");
-                        setShowButtonsFalse();
-                        if (duizi.contains((byte)(0x00 << 4) | (byte)zhu)){
-                            showHeart.setEnabled(true);
-                            showHeart.setVisibility(View.VISIBLE);
-                        }
-                        if (duizi.contains((byte)(0x01 << 4) | (byte)zhu)){
-                            showClub.setEnabled(true);
-                            showClub.setVisibility(View.VISIBLE);
-                        }
-                        if (duizi.contains((byte)(0x02 << 4) | (byte)zhu)){
-                            showDiamond.setEnabled(true);
-                            showDiamond.setVisibility(View.VISIBLE);
-                        }
-                        if (duizi.contains((byte)(0x03 << 4) | (byte)zhu)){
-                            showSpade.setEnabled(true);
-                            showSpade.setVisibility(View.VISIBLE);
-                        }
-                        if (duizi.contains(0x4d)){
-                            showJokerBlack.setEnabled(true);
-                            showJokerBlack.setVisibility(View.VISIBLE);
-                        }
-                        if (duizi.contains(0x4e)){
-                            showJokerRed.setEnabled(true);
-                            showJokerRed.setVisibility(View.VISIBLE);
-                        }
-                    }
-                    return;*/
                 }
                 if (CodeUtil.getHeader(code) == CodeUtil.FANSUIT){
+                    Log.d("fan", "has fan");
                     suit = (byte)(CodeUtil.getTail(code) >> 2);
                     zhu = (byte)(suit << 4 | zhu);
                     int showSuitId = CodeUtil.getTail(code) & 0x03;
                     setZhuImage(zhu, showSuitId, true);
                     if (showSuitId == playerId){
                         selfFan = true;
-                        // Ëá™Â∑±ÂèçÁöÑËä±Ëâ≤Ôºå‰∏çËÉΩÂÜçÂèç
-                        /*setShowButtonsFalse();
-                        showJokerBlack.setEnabled(false);
-                        showJokerRed.setEnabled(false);*/
-                    }else { // Âà´‰∫∫ÂèçÁöÑËä±Ëâ≤ÔºåÂ¶ÇÊûúÊúâÂØπÂèØ‰ª•ÂÜçÂèç
+                    }else {
                         selfFan = false;
                     }
                     updateShowButtons();
                     return;
-                    /*    Log.d("self", "false");
-                        setShowButtonsFalse();
-                        if (duizi.contains((byte)(0x00 << 4) | (byte)zhu)){
-                            if (!hasFanHeart) {
-                                showHeart.setEnabled(true);
-                                showHeart.setVisibility(View.VISIBLE);
-                            }
-                        }
-                        if (duizi.contains((byte)(0x01 << 4) | (byte)zhu)){
-                            if (!hasFanClub) {
-                                showClub.setEnabled(true);
-                                showClub.setVisibility(View.VISIBLE);
-                            }
-                        }
-                        if (duizi.contains((byte)(0x02 << 4) | (byte)zhu)){
-                            if (!hasFanDiamond) {
-                                showDiamond.setEnabled(true);
-                                showDiamond.setVisibility(View.VISIBLE);
-                            }
-                        }
-                        if (duizi.contains((byte)(0x03 << 4) | (byte)zhu)){
-                            if (!hasFanSpade) {
-                                showSpade.setEnabled(true);
-                                showSpade.setVisibility(View.VISIBLE);
-                            }
-                        }
-                        if (duizi.contains(0x4d)){
-                            showJokerBlack.setEnabled(true);
-                            showJokerBlack.setVisibility(View.VISIBLE);
-                        }
-                        if (duizi.contains(0x4e)){
-                            showJokerRed.setEnabled(true);
-                            showJokerRed.setVisibility(View.VISIBLE);
-                        }
-                    }
-                    return;*/
                 }
                 if (CodeUtil.getHeader(code) == CodeUtil.DINGSUIT){
+                    Log.d("ding", "has ding");
                     hasDing = true;
                     suit = (byte)(CodeUtil.getTail(code) >> 2);
                     zhu = (byte)(suit << 4 | zhu);
@@ -308,27 +224,18 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                     setZhuImage(zhu, showSuitId, true);
                     if (showSuitId == playerId){
                         selfFan = true;
-                        //setShowButtonsFalse();
-                    }else { // Âà´‰∫∫ÂÆöÁöÑËä±Ëâ≤ÔºåÂ¶ÇÊûúÊúâÂØπÁéãÂèØ‰ª•Âèç
+                    }else {
                         selfFan = false;
                     }
                     updateShowButtons();
                     return;
-                    /*    Log.d("self", "false");
-                        setShowButtonsFalse();
-                        if (duizi.contains(0x4d)){
-                            showJokerBlack.setEnabled(true);
-                        }
-                        if (duizi.contains(0x4e)){
-                            showJokerRed.setEnabled(true);
-                        }
-                    }
-                    return;*/
                 }
                 if (CodeUtil.getHeader(code) == CodeUtil.FANWANG){
+                    Log.d("fan", "has fan wang");
                     hasFanWang = true;
                     int wang = (CodeUtil.getTail(code) >> 2);
                     suit = (byte)(wang == 0 ? 0x04 : 0x05);
+                    zhu = (byte)(zhu & 0x0f);
                     int showSuitId = CodeUtil.getTail(code) & 0x03;
                     if (wang == 0) {
                         setZhuImage((byte)0x4d, showSuitId, true);
@@ -342,81 +249,80 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                     }
                     updateShowButtons();
                     return;
-                        /*setShowButtonsFalse();
-                        showJokerBlack.setEnabled(false);
-                        showJokerBlack.setVisibility(View.INVISIBLE);
-                        showJokerRed.setEnabled(false);
-                        showJokerRed.setVisibility(View.INVISIBLE);
-                    }else{ // Âà´‰∫∫ÂèçÂ∞èÁéãÔºåÂ§ßÁéãÂèØ‰ª•Âèç
-                        selfFan = false;
-                        Log.d("self", "false");
-                        setShowButtonsFalse();
-                        showJokerBlack.setEnabled(false);
-                        showJokerBlack.setVisibility(View.INVISIBLE);
-                        if (wang == 0 && duizi.contains(0x4e)){
-                            showJokerRed.setEnabled(true);
-                            showJokerRed.setVisibility(View.VISIBLE);
-                        }
-                    }
-                    return;*/
+                }
+                if (code == CodeUtil.SUCCESS){
+                    stat = GAMESTATE.MAIPAI;
+                    Log.d("stat", stat.toString());
+                    updateShowButtons();
+                    return;
                 }
                 if (CodeUtil.getHeader(code) == CodeUtil.BIZHUANG){
                     bizhuang = true;
                     updateShowButtons();
+                    updateTurnImage(CodeUtil.getTail(code));
                     return;
-                    /*
-                    if (!isZhuangJia){
-                        setShowButtonsFalse();
-                        showJokerBlack.setEnabled(false);
-                        showJokerBlack.setVisibility(View.INVISIBLE);
-                        showJokerRed.setEnabled(false);
-                        showJokerRed.setVisibility(View.INVISIBLE);
-                    }
-                    else {
-                        boolean canFan = false;
-                        if (hasCard((byte)((0x00 << 4) | (byte)zhu))){
-                            canFan = true;
-                        }
-                        if (hasCard((byte)((0x01 << 4) | (byte)zhu))){
-                            canFan = true;
-                        }
-                        if (hasCard((byte)((0x02 << 4) | (byte)zhu))){
-                            canFan = true;
-                        }
-                        if (hasCard((byte)((0x03 << 4) | (byte)zhu))){
-                            canFan = true;
-                        }
-                        if (!canFan){
-                            noZhuFan.setVisibility(View.VISIBLE);
-                        }
-                    }
-                    return;*/
                 }
-                if (CodeUtil.getHeader(code) == CodeUtil.STARTTURN){
-                    Log.d("start turn", "start turn");
-                    fapaiStat = false;
-                    maipaiStat = true;
-                    dapaiStat = false;
+                if (CodeUtil.getHeader(code) == CodeUtil.MAIPAITURN){
+                    int maipairen = CodeUtil.getTail(code) >> 2;
+                    if (maipairen == playerId){
+                        selfMaipai = true;
+                    }else {
+                        selfMaipai = false;
+                    }
+                    int turnID = CodeUtil.getTail(code) & 0x03;
                     setShowImages(View.INVISIBLE);
-                    if (CodeUtil.getTail(code) == playerId){
+                    if (turnID == playerId){
                         selfTurn = true;
-                        //setShowButtonsFalse();
-                        /*showJokerBlack.setEnabled(false);
-                        showJokerBlack.setVisibility(View.INVISIBLE);
-                        showJokerRed.setEnabled(false);
-                        showJokerRed.setVisibility(View.INVISIBLE);*/
-                        maipaiButton.setVisibility(View.VISIBLE);
-                        Log.d("start turn", "self");
                     }else{
                         selfTurn = false;
-                        maipaiButton.setVisibility(View.GONE);
-                        chupaiButton.setVisibility(View.GONE);
-                        //updateImages();
                     }
                     updateShowButtons();
+                    updateTurnImage(turnID);
+                    updateMaipaiButton();
                     return;
                 }
-                addCard(code);
+                if (CodeUtil.getHeader(code) == CodeUtil.FIRSTPLAY){
+                    firstCards.clear();
+                    firstCardsCount = 0;
+                    firstPlayerId = CodeUtil.getTail(code);
+                    return;
+                }
+                if (CodeUtil.getHeader(code) == CodeUtil.PLAYTURN){
+                    if (stat != GAMESTATE.PLAY) {
+                        stat = GAMESTATE.PLAY;
+                        setRuler();
+                        setShowButtonsGone();
+                        setShowImages(View.GONE);
+                        Log.d("stat", stat.toString());
+                    }
+                    int playId = CodeUtil.getTail(code);
+                    if (playId == playerId){
+                        selfTurn = true;
+                    }else{
+                        selfTurn = false;
+                    }
+                    whoPlay = playId;
+                    updateChupaiButton();
+                    updateTurnImage(playId);
+                    return;
+                }
+                if (stat != GAMESTATE.PLAY) {
+                    addCard(code);
+                }
+                if (stat == GAMESTATE.PLAY && (code & 0xe0) == 0xe0){
+                    firstCardsCount = (code & 0x1f);
+                    Log.d("firstCardsCount", firstCardsCount + "");
+                    return;
+                }
+                if (stat == GAMESTATE.PLAY){
+                    if (whoPlay == firstPlayerId){
+                        firstCards.add(code);
+                        if (firstCards.size() == firstCardsCount){
+                            Log.d("first cards", firstCards.toString());
+                        }
+                    }
+                    addCardToPlayRegion(code, whoPlay);
+                }
             }
         };
         sThread.start();
@@ -438,36 +344,177 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         }
     }*/
 
+    protected void setRuler(){
+        if (suit < 4){
+            ruler.setZhu(CodeUtil.getCardFromCode(zhu));
+            com.setZhu(CodeUtil.getCardFromCode(zhu));
+        }else{
+            ruler.setZhu(new Card(null, Rank.values()[zhu]));
+            com.setZhu(new Card(Suit.Heart, Rank.values()[zhu]));
+        }
+        codeCom.setCardComparator(com);
+        ruler.setCodeComparator(codeCom);
+    }
+
+    protected void updateChupaiButton(){
+        if (selfTurn){
+            // ◊‘º∫≥ˆ≈∆
+            if (chupaiButton.getVisibility() != View.VISIBLE) {
+                chupaiButton.setVisibility(View.VISIBLE);
+            }
+            if (firstPlayerId == playerId){     //  «±æ¬÷µ⁄“ª∏ˆ≥ˆ≈∆
+                if (!playCards.isEmpty()) {     // ”–≈∆≥ˆ¡–
+                    if (!chupaiButton.isEnabled()){
+                        chupaiButton.setEnabled(true);
+                    }
+                }else{
+                    if (chupaiButton.isEnabled()){
+                        chupaiButton.setEnabled(false);
+                    }
+                }
+            }else{
+                // ∏˙≈∆£¨ ˝¡ø±ÿ–Î”Îµ⁄“ª∏ˆ“ª÷¬
+                if (playCards.size() == firstCardsCount){
+                    if (!chupaiButton.isEnabled()){
+                        chupaiButton.setEnabled(true);
+                    }
+                }else{
+                    if (chupaiButton.isEnabled()){
+                        chupaiButton.setEnabled(false);
+                    }
+                }
+            }
+        }else{
+            if (chupaiButton.getVisibility() != View.INVISIBLE){
+                chupaiButton.setVisibility(View.INVISIBLE);
+            }
+            if (chupaiButton.isEnabled()){
+                chupaiButton.setEnabled(false);
+            }
+        }
+    }
+
+    protected void updateMaipaiButton(){
+        if (selfTurn && selfMaipai){
+            if (maipaiButton.getVisibility() != View.VISIBLE) {
+                maipaiButton.setVisibility(View.VISIBLE);
+            }
+            if (playCards.size() == 8){
+                if (!maipaiButton.isEnabled()) {
+                    maipaiButton.setEnabled(true);
+                }
+            }else{
+                if (maipaiButton.isEnabled()){
+                    maipaiButton.setEnabled(false);
+                }
+            }
+        }else{
+            if (maipaiButton.getVisibility() != View.INVISIBLE) {
+                maipaiButton.setVisibility(View.INVISIBLE);
+            }
+            if (maipaiButton.isEnabled()){
+                maipaiButton.setEnabled(false);
+            }
+        }
+    }
+
+    protected boolean checkShowButtonsVisible(){
+        boolean ret = false;
+        for (int i = 0; i < 6; ++i){
+            if (showButtons[i].getVisibility() == View.VISIBLE) {
+                ret = true;
+                break;
+            }
+        }
+        return ret;
+    }
+
     protected void setShowButtonsInvisible(int i){
-        showButtons[i].setEnabled(false);
-        showButtons[i].setVisibility(View.INVISIBLE);
+        if (showButtons[i].getVisibility() != View.INVISIBLE) {
+            showButtons[i].setEnabled(false);
+            showButtons[i].setVisibility(View.INVISIBLE);
+        }
     }
 
     protected void setAllShowButtonsInvisible() {
         for (int i = 0; i < 6; ++i) {
             setShowButtonsInvisible(i);
         }
+        if (showBuFan.getVisibility() != View.INVISIBLE) {
+            showBuFan.setEnabled(false);
+            showBuFan.setVisibility(View.INVISIBLE);
+        }
     }
 
     protected void setShowButtonsVisible(int i){
-        showButtons[i].setEnabled(true);
-        showButtons[i].setVisibility(View.VISIBLE);
+        if (showButtons[i].getVisibility() != View.VISIBLE) {
+            showButtons[i].setEnabled(true);
+            showButtons[i].setVisibility(View.VISIBLE);
+        }
     }
 
-    protected void setShowButtonsGone(){
-        showHeart.setVisibility(View.GONE);
-        showClub.setVisibility(View.GONE);
-        showDiamond.setVisibility(View.GONE);
-        showSpade.setVisibility(View.GONE);
-        showJokerBlack.setVisibility(View.GONE);
-        showJokerRed.setVisibility(View.GONE);
+    protected void setShowButtonsGone() {
+        for (int i = 0; i < showButtons.length; ++i){
+            if (showButtons[i].getVisibility() != View.GONE)
+                showButtons[i].setVisibility(View.GONE);
+        }
     }
 
     protected void updateShowButtons() {
-        Log.d("selfTurn0", "" + selfTurn);
-        if (selfTurn){
+        if (bizhuang){
+            if (isZhuangJia) {
+                for (int i = 0; i < 4; ++i) {
+                    if (hasCard((byte) ((i << 4) | (byte) zhu))) {
+                        setShowButtonsVisible(i);
+                    }
+                }
+                if (!checkShowButtonsVisible()){
+                    // Œﬁ≈∆ø…∑≠
+                    noZhuFan.setVisibility(View.VISIBLE);
+                }
+            }else{
+                setAllShowButtonsInvisible();
+            }
+            return;
+        }
+        if (stat == GAMESTATE.MAIPAI && selfMaipai){
             setAllShowButtonsInvisible();
-            Log.d("selfTurn1", "" + selfTurn);
+            return;
+        }
+        if (stat == GAMESTATE.MAIPAI && !selfTurn){
+            setAllShowButtonsInvisible();
+            return;
+        }
+        if (stat == GAMESTATE.MAIPAI && !selfMaipai && selfTurn){
+            setAllShowButtonsInvisible();
+            showBuFan.setEnabled(true);
+            showBuFan.setVisibility(View.VISIBLE);
+            if (hasDing){
+                if (hasDuizi((byte) 0x4d)) {
+                    setShowButtonsVisible(4);
+                }
+                if (hasDuizi((byte) 0x4e)) {
+                    setShowButtonsVisible(5);
+                }
+            }
+            if (!hasFanWang && !hasDing){
+                if (hasDuizi((byte) 0x4d)) {
+                    setShowButtonsVisible(4);
+                }
+                if (hasDuizi((byte) 0x4e)) {
+                    setShowButtonsVisible(5);
+                }
+                for (int i = 0; i < 4; ++i){
+                    if (hasDuizi((byte)(i << 4 | zhu)) && !hasFanColor[i]){
+                        setShowButtonsVisible(i);
+                    }
+                }
+            }
+            if (hasFanWang){
+                if (hasDuizi((byte) 0x4e)) {
+                    setShowButtonsVisible(5);
+                }
+            }
             return;
         }
         if (!hasSetZhu) {
@@ -476,29 +523,17 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                     setShowButtonsVisible(i);
                 }
             }
-            /*if (hasCard((byte)((0x00 << 4) | (byte)zhu))){
-                setShowButtonsVisible(0);
-            }
-            if (hasCard((byte)((0x01 << 4) | (byte)zhu))){
-                setShowButtonsVisible(1);
-            }
-            if (hasCard((byte)((0x02 << 4) | (byte)zhu))){
-                setShowButtonsVisible(2);
-            }
-            if (hasCard((byte)((0x03 << 4) | (byte)zhu))){
-                setShowButtonsVisible(3);
-            }*/
         }
-        if (hasSetZhu && selfFan && !hasDing) {
+        if (hasSetZhu && !hasFanWang && selfFan && !hasDing) {
             setAllShowButtonsInvisible();
             if (hasDuizi((byte) zhu)) {
                 setShowButtonsVisible(zhu >> 4);
             }
         }
-        if (hasSetZhu && selfFan && hasDing) {
+        if (hasSetZhu && !hasFanWang && selfFan && hasDing) {
             setAllShowButtonsInvisible();
         }
-        if (hasSetZhu && !selfFan && !hasDing) {
+        if (hasSetZhu && !hasFanWang && !selfFan && !hasDing) {
             setAllShowButtonsInvisible();
             if (!isFirstGame) {
                 if (hasDuizi((byte) 0x4d)) {
@@ -513,11 +548,8 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                     setShowButtonsVisible(i);
                 }
             }
-            /*if (hasDuizi((byte)(0x00 << 4 | zhu))){
-                setShowButtonsVisible(0);
-            }*/
         }
-        if (hasSetZhu && !selfFan && hasDing){
+        if (hasSetZhu && !hasFanWang && !selfFan && hasDing){
             setAllShowButtonsInvisible();
             if (!isFirstGame){
                 if (hasDuizi((byte) 0x4d)) {
@@ -539,9 +571,18 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    protected void addCardToPlayRegion(byte card, int id){
+        int loc = id - playerId;
+        ImageView view = new ImageView(GameActivity.this);
+        view.setImageBitmap(BitmapFactory.decodeResource(getResources(),
+                ResourceUtil.getIDByName(CodeUtil.getCardFromCode(card).toString().toLowerCase())));
+        view.setLayoutParams(smallParams);
+        loc = loc < 0 ? loc + 4 : loc;
+        playCardsLayouts[loc].addView(view);
+    }
+
     protected void addCard(byte code){
         Card card = CodeUtil.getCardFromCode(code);
-        Log.d("GameActivity add card", card.toString());
         Rank _rank = card.getRank();
         /*
         if (_rank == Rank.Joker_red || _rank == Rank.Joker_black || _rank == Rank.Deuce ||
@@ -557,122 +598,41 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
             ++spadeCount;
         }
         */
-        // ÊúâÂΩìÂâçÁ≠âÁ∫ßÁâåÂèØ‰ª•‰∫ÆËä±Ëâ≤
-        /*if (CodeUtil.getTail(code) == CodeUtil.getTail(zhu)){
-            if (!hasSetZhu && selfFan == false) {
-                switch (CodeUtil.getHigher(code)) {
-                    case 0:
-                        showHeart.setEnabled(true);
-                        showHeart.setVisibility(View.VISIBLE);
-                        break;
-                    case 1:
-                        showClub.setEnabled(true);
-                        showClub.setVisibility(View.VISIBLE);
-                        break;
-                    case 2:
-                        showDiamond.setEnabled(true);
-                        showDiamond.setVisibility(View.VISIBLE);
-                        break;
-                    case 3:
-                        showSpade.setEnabled(true);
-                        showSpade.setVisibility(View.VISIBLE);
-                        break;
-                }
-            }
-        }*/
-        int index = getIndex(code);
-
-        MyImageView imageView = new MyImageView(GameActivity.this);
+        MyImageView imageView = new MyImageView(GameActivity.this, topMargin);
         imageView.setImg(code);
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (fapaiStat) return;
+                if (stat == GAMESTATE.DEAL) return;
                 if (imageView.play == false){
                     playCards.add(imageView.code);
                     playImages.add(imageView);
-                    imageView.offsetTopAndBottom(-topMargin);
                     imageView.play = true;
+                    imageView.offsetTopAndBottom(-topMargin);
                 }else{
                     playCards.remove((Object)imageView.code);
                     playImages.remove(imageView);
-                    imageView.offsetTopAndBottom(topMargin);
                     imageView.play = false;
+                    imageView.offsetTopAndBottom(topMargin);
                 }
-                if (maipaiStat){
-                    if (playCards.size() == 8)
-                        maipaiButton.setEnabled(true);
-                    else
-                        maipaiButton.setEnabled(false);
-                }
-                if (dapaiStat){
-                    if (playCards.isEmpty())
-                        chupaiButton.setEnabled(false);
-                    else
-                        chupaiButton.setEnabled(true);
-                }
+                if (stat == GAMESTATE.MAIPAI)
+                    updateMaipaiButton();
+                if (stat == GAMESTATE.PLAY)
+                    updateChupaiButton();
             }
         });
 
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(imageWidth, imageHeight);
+        int index = getIndex(code);
         if (index > 0) {
-            params.leftMargin = leftMargin;
             imageView.setLayoutParams(params);
             handCardsLayout.addView(imageView, index);
-        }
-        /*}else if(index == 0) {
-            params.leftMargin = leftMargin * -2;
-            imageView.setLayoutParams(params);
-            handCardsLayout.addView(imageView, index);
-
-            if (!handCards.isEmpty()) {
-                MyImageView secondCard = (MyImageView) handCardsLayout.getChildAt(1);
-                params.leftMargin = leftMargin;
-                secondCard.setLayoutParams(params);
+            if (stat == GAMESTATE.MAIPAI){
+                imageView.callOnClick();
             }
-        }*/
+        }
         if (handCards.contains(code)) {
             duizi.add(code);
         }
-        /*if (!selfFan) {
-            if (hasDuizi((byte) ((0x00 << 4) | (byte) zhu))) {
-                if (!hasFanHeart) {
-                    showHeart.setEnabled(true);
-                    showHeart.setVisibility(View.VISIBLE);
-                }
-
-            }
-            if (hasDuizi((byte) ((0x01 << 4) | (byte) zhu))) {
-                if (!hasFanClub) {
-                    showClub.setEnabled(true);
-                    showClub.setVisibility(View.VISIBLE);
-                }
-            }
-            if (hasDuizi((byte) ((0x02 << 4) | (byte) zhu))) {
-                if (!hasFanDiamond) {
-                    showDiamond.setEnabled(true);
-                    showDiamond.setVisibility(View.VISIBLE);
-                }
-            }
-            if (hasDuizi((byte) ((0x03 << 4) | (byte) zhu))) {
-                if (!hasFanSpade) {
-                    showSpade.setEnabled(true);
-                    showSpade.setVisibility(View.VISIBLE);
-                }
-            }
-            if (hasDuizi((byte) 0x4d)) {
-                if (!hasFanJokerBlack) {
-                    showJokerBlack.setEnabled(true);
-                    showJokerBlack.setVisibility(View.VISIBLE);
-                }
-            }
-            if (hasDuizi((byte) 0x4e)) {
-                if (!hasFanJokerRed) {
-                    showJokerRed.setEnabled(true);
-                    showJokerRed.setVisibility(View.VISIBLE);
-                }
-            }
-        }*/
         handCards.add(index - 1, code);
         updateShowButtons();
     }
@@ -690,8 +650,8 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         if (handCards.isEmpty()){
             return 1;
         }
+        Card c1 = CodeUtil.getCardFromCode(code);
         for (byte b : handCards){
-            Card c1 = CodeUtil.getCardFromCode(code);
             Card c2 = CodeUtil.getCardFromCode(b);
             if (com.compare(c1, c2) < 0)
                 ++index;
@@ -702,11 +662,11 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
 
     protected void setUI(){
         Log.d("GameActivity", "setUI");
-        // ÈöêËóèÊ†áÈ¢òÊ†è
+        // “˛≤ÿ±ÍÃ‚¿∏
         if (getSupportActionBar() != null){
             getSupportActionBar().hide();
         }
-        // ÈöêËóèÁä∂ÊÄÅÊ†èÂíåËôöÊãüÊåâÈîÆ
+        // “˛≤ÿ◊¥Ã¨¿∏∫Õ–Èƒ‚∞¥º¸
         if (Build.VERSION.SDK_INT > 11 && Build.VERSION.SDK_INT < 19) { // lower api
             View v = this.getWindow().getDecorView();
             v.setSystemUiVisibility(View.GONE);
@@ -717,7 +677,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                     | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_FULLSCREEN;
             decorView.setSystemUiVisibility(uiOptions);
         }
-        // ËÆæÁΩÆÊ®™Â±è
+        // …Ë÷√∫·∆¡
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
     }
 
@@ -766,22 +726,38 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.no_fan:
                 sThread.send(CodeUtil.BIZHUANG);
-                noZhuFan.setEnabled(false);
+                noZhuFan.setVisibility(View.GONE);
                 break;
             case R.id.button_maipai:
-                for (byte b : playCards){
-                    Log.d("send ", "" + b);
-                    Log.d("send card", CodeUtil.getCardFromCode(b).toString());
-                    sThread.send(b);
-                }
-                handCards.removeAll(playCards);
+                sThread.sendCards(new ArrayList<Byte>(playCards), false);
+                Log.d("maipai array", playCards.toString());
+                for (byte b : playCards)
+                    handCards.remove((Object)b);
+                playCards.clear();
                 for (int i = 0; i < playImages.size(); ++i) {
                     handCardsLayout.removeView(playImages.get(i));
                 }
                 setSelfTurnFalse();
-                //updateImages();
+                break;
+            case R.id.show_bufan:
+                setAllShowButtonsInvisible();
+                sThread.send(CodeUtil.BUFAN);
                 break;
             case R.id.button_chupai:
+                if (!ruler.checkSuit(playCards)){
+                    chupaiButton.setEnabled(false);
+                    Toast.makeText(GameActivity.this, strBreakRules, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                sThread.sendCards(new ArrayList<Byte>(playCards), true);
+                Log.d("chupai array", playCards.toString());
+                for (byte b : playCards)
+                    handCards.remove((Object)b);
+                for (int i = 0; i < playImages.size(); ++i) {
+                    handCardsLayout.removeView(playImages.get(i));
+                }
+                setSelfTurnFalse();
+                playCards.clear();
                 break;
         }
     }
@@ -792,15 +768,12 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         chupaiButton.setVisibility(View.GONE);
     }
 
-    protected void setShowImages(int i){
-        showImage00.setVisibility(i);
-        showImage01.setVisibility(i);
-        showImage10.setVisibility(i);
-        showImage11.setVisibility(i);
-        showImage20.setVisibility(i);
-        showImage21.setVisibility(i);
-        showImage30.setVisibility(i);
-        showImage31.setVisibility(i);
+    protected void setShowImages(int visibility){
+        for (int i = 0; i < showImages.length; ++i){
+            if (showImages[i].getVisibility() != visibility){
+                showImages[i].setVisibility(visibility);
+            }
+        }
     }
 
     protected void setZhuImage(byte code, int id, boolean dui){
@@ -808,50 +781,33 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         setShowImages(View.INVISIBLE);
         int loc = id - playerId;
         loc = loc < 0 ? loc + 4 : loc;
-        switch (loc){
-            case 0: // Ëá™Â∑±
-                showImage00.setImageBitmap(BitmapFactory.decodeResource(getResources(),
-                        ResourceUtil.getIDByName(zhuName)));
-                showImage00.setVisibility(View.VISIBLE);
-                if (dui){
-                    showImage01.setImageBitmap(BitmapFactory.decodeResource(getResources(),
-                            ResourceUtil.getIDByName(zhuName)));
-                    showImage01.setVisibility(View.VISIBLE);
-                }
-                break;
-            case 1: // ‰∏ãÂÆ∂
-                showImage10.setImageBitmap(BitmapFactory.decodeResource(getResources(),
-                        ResourceUtil.getIDByName(zhuName)));
-                showImage10.setVisibility(View.VISIBLE);
-                if (dui){
-                    showImage11.setImageBitmap(BitmapFactory.decodeResource(getResources(),
-                            ResourceUtil.getIDByName(zhuName)));
-                    showImage11.setVisibility(View.VISIBLE);
-                }
-                break;
-            case 2: // ÂØπÂÆ∂
-                showImage20.setImageBitmap(BitmapFactory.decodeResource(getResources(),
-                        ResourceUtil.getIDByName(zhuName)));
-                showImage20.setVisibility(View.VISIBLE);
-                if (dui){
-                    showImage21.setImageBitmap(BitmapFactory.decodeResource(getResources(),
-                            ResourceUtil.getIDByName(zhuName)));
-                    showImage21.setVisibility(View.VISIBLE);
-                }
-                break;
-            case 3: // ‰∏äÂÆ∂
-                showImage30.setImageBitmap(BitmapFactory.decodeResource(getResources(),
-                        ResourceUtil.getIDByName(zhuName)));
-                showImage30.setVisibility(View.VISIBLE);
-                if (dui){
-                    showImage31.setImageBitmap(BitmapFactory.decodeResource(getResources(),
-                            ResourceUtil.getIDByName(zhuName)));
-                    showImage31.setVisibility(View.VISIBLE);
-                }
-                break;
+        showImages[loc * 2].setImageBitmap(BitmapFactory.decodeResource(getResources(),
+                ResourceUtil.getIDByName(zhuName)));
+        showImages[loc * 2].setVisibility(View.VISIBLE);
+        if (dui){
+            showImages[loc * 2 + 1].setImageBitmap(BitmapFactory.decodeResource(getResources(),
+                    ResourceUtil.getIDByName(zhuName)));
+            showImages[loc * 2 + 1].setVisibility(View.VISIBLE);
         }
         zhuImage.setImageBitmap(BitmapFactory.decodeResource(getResources(),
                 ResourceUtil.getIDByName(zhuName)));
+    }
+
+    protected void updateTurnImage(int turn){
+        setAllTurnImageInvisible();
+        int loc = turn- playerId;
+        loc = loc < 0 ? loc + 4 : loc;
+        if (loc != 0){
+            turnImage[loc - 1].setVisibility(View.VISIBLE);
+        }
+    }
+
+    protected void setAllTurnImageInvisible(){
+        for (int i = 0; i < 3; ++i){
+            if (turnImage[i].getVisibility() != View.INVISIBLE){
+                turnImage[i].setVisibility(View.INVISIBLE);
+            }
+        }
     }
 
     @Override
@@ -860,5 +816,27 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         Log.d("GameActivity", "destroy");
         sThread.send(CodeUtil.EXIT);
         sThread.stop = true;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // ÈöêËóèÁä∂Ê?ÅÊ†èÂíåËôöÊãüÊåâÈî?
+        if (Build.VERSION.SDK_INT > 11 && Build.VERSION.SDK_INT < 19) { // lower api
+            View v = this.getWindow().getDecorView();
+            v.setSystemUiVisibility(View.GONE);
+        } else if (Build.VERSION.SDK_INT >= 19) {
+            //for new api versions.
+            View decorView = getWindow().getDecorView();
+            int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_FULLSCREEN;
+            decorView.setSystemUiVisibility(uiOptions);
+        }
+    }
+
+    private enum  GAMESTATE{
+        DEAL,
+        MAIPAI,
+        PLAY
     }
 }

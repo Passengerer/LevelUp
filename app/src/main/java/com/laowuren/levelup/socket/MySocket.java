@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 
 /**
  * Created by Administrator on 2020/1/27/027.
@@ -16,27 +15,29 @@ import java.net.UnknownHostException;
 
 public class MySocket extends Socket {
 
-    //private static final String host = "10.0.2.2";
+    private static final String host = "10.0.2.2";
     //private static final String host = "103.46.128.41";
-    private static String socketAddress = "28s916y943.qicp.vip";
+    //private static String socketAddress = "28s916y943.qicp.vip";
     private static InetAddress netAddress;
-    private static final int port = 45386;
+    //private static final int port = 45386;
+    private static final int port = 9798;
     private static InputStream in = null;
     private static OutputStream out = null;
     /* 持有私有静态实例，防止被引用，此处赋值为null，目的是实现延迟加载 */
     private static MySocket socket = null;
 
-    static {
+    /*static {
         try{
             netAddress = InetAddress.getByName(socketAddress);
         }catch (UnknownHostException e){
             Log.d("init socket", "unknownhost");
         }
-    }
+    }*/
 
     private MySocket() throws IOException {
-        super(netAddress, port);
-        System.out.println(netAddress.getHostAddress());
+        //super(netAddress, port);
+        super(host, port);
+        //System.out.println(netAddress.getHostAddress());
     }
 
     public static MySocket getSocket() throws IOException {
