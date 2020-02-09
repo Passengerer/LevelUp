@@ -3,9 +3,10 @@ package com.laowuren.levelup.utils;
 import com.laowuren.levelup.others.Card;
 import com.laowuren.levelup.others.Rank;
 import com.laowuren.levelup.others.Suit;
+import com.laowuren.levelup.utils.CodeUtil;
 
 import java.util.ArrayList;
-
+import java.util.HashMap;
 
 public class CardsParser {
 	
@@ -32,6 +33,107 @@ public class CardsParser {
 			}
 		}
 		return dui;
+	}
+	
+	public static HashMap<Byte, Integer> getLiandui(ArrayList<Byte> cards, Card zhu){
+		ArrayList<Byte> dui = getDui(cards);
+		HashMap<Byte, Integer> ret = new HashMap<>();
+		if (dui == null || dui.size() < 2) {
+			return null;
+		}
+		byte now;
+		byte next;
+		int length = 1;
+		byte start = -1;
+		for (int i = 0; i < dui.size() - 1; ++i) {
+			now = dui.get(i);
+			next = dui.get(i + 1);
+			if (checkNext(now, next, zhu)) {
+				++length;
+				if (ret.containsKey(start)) {
+					ret.replace(start, length);
+				}else {
+					start = now;
+					ret.put(start, length);
+				}
+			}else {
+				start = now;
+				length = 1;
+			}
+		}
+		return ret.isEmpty() ? null : ret;
+	}
+	
+	/**
+	 * code1应比code2大
+	 * @param code1
+	 * @param code2
+	 * @param zhu
+	 * @return 返回code2是否比code1小1级
+	 */
+	private static boolean checkNext(Byte code1, Byte code2, Card zhu) {
+		Suit zhuSuit = zhu.getSuit();
+		Rank zhuRank = zhu.getRank();
+		if (CodeUtil.getCardFromCode(code1).getRank() == Rank.Joker_red) {
+			// code1是大王，下一级是小王
+			return CodeUtil.getCardFromCode(code2).getRank() == Rank.Joker_black;
+		}else if (CodeUtil.getCardFromCode(code1).getRank() == Rank.Joker_black) {
+			// code1是小王
+			if (zhuSuit == null) {
+				// 没有花色，是当前等级即可
+				return CodeUtil.getCardFromCode(code2).getRank() == zhuRank;
+			}else {
+				// 有花色，下一级是正
+				Card card2 = CodeUtil.getCardFromCode(code2);
+				return card2.getSuit() == zhuSuit && card2.getRank() == zhuRank;
+			}
+		}else if (CodeUtil.getCardFromCode(code1).getRank() == zhuRank) {
+			// code1是当前等级
+			if (zhuSuit == null) {
+				// 没有花色，是2即可
+				return CodeUtil.getCardFromCode(code2).getRank() == Rank.Deuce;
+			}else {
+				Card card2 = CodeUtil.getCardFromCode(code2);
+				// 有花色，如果code1是正，则下一级是副
+				if (CodeUtil.getCardFromCode(code1).getSuit() == zhuSuit) {
+					return card2.getSuit() != zhuSuit && card2.getRank() == zhuRank;
+				}else {
+					// code1是副，下一级是正2
+					return card2.getSuit() == zhuSuit && card2.getRank() == Rank.Deuce;
+				}
+			}
+		}else if (CodeUtil.getCardFromCode(code1).getRank() == Rank.Deuce) {
+			// code1是2
+			if (zhuSuit == null) {
+				// 没有花色，没有下一级
+				return false;
+			}else {
+				// 有花色，下一级是主花色的A(如果A不是当前等级)
+				Card card2 = CodeUtil.getCardFromCode(code2);
+				// 对于已排序的code1和code2，code1 > code2，故code2不可能是当前等级
+				if (zhuRank != Rank.Ace) {
+					// A不是当前等级
+					return card2.getSuit() == zhuSuit && card2.getRank() == Rank.Ace;
+				}else {
+					// A是当前等级，下一级是K
+					return card2.getSuit() == zhuSuit && card2.getRank() == Rank.King;
+				}
+			}
+		}else {
+			// code1不是王、2或当前等级，下一级与code1同花色，等级-1(如果-1后不是当前等级)
+			Card card1 = CodeUtil.getCardFromCode(code1);
+			Card card2 = CodeUtil.getCardFromCode(code2);
+			Suit card1Suit = card1.getSuit();
+			Rank card1Rank = card1.getRank();
+			if (card2.getSuit() != card1Suit) {
+				return false;
+			}
+			if (zhuRank.ordinal() != card1Rank.ordinal() - 1) {
+				return card2.getRank().ordinal() == card1Rank.ordinal() - 1;
+			}else {
+				return card2.getRank().ordinal() == card1Rank.ordinal() - 2;
+			}
+		}
 	}
 	
 	public static ArrayList<Byte> getHeart(ArrayList<Byte> cards, Rank level) {

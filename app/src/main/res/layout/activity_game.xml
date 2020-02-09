@@ -57,6 +57,11 @@
             android:layout_below="@id/text_score"
             android:layout_centerHorizontal="true">
 
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp">
+
         <ImageView
             android:layout_width="50dp"
             android:layout_height="80dp"
@@ -66,7 +71,9 @@
             android:layout_width="50dp"
             android:layout_height="80dp"
             android:id="@+id/image_show01"
-            android:layout_marginLeft="-28dp"/>
+            android:layout_marginLeft="28dp"/>
+
+            </FrameLayout>
 
             <ImageView
                 android:layout_width="1dp"
@@ -107,6 +114,10 @@
                 android:id="@+id/image_show11"
                 android:layout_marginLeft="28dp"/>
             </FrameLayout>
+
+            <ImageView
+                android:layout_width="1dp"
+                android:layout_height="1dp"/>
 
         </LinearLayout>
 
@@ -182,6 +193,10 @@
                 android:id="@+id/image_show31"
                 android:layout_marginLeft="28dp"/>
         </FrameLayout>
+
+            <ImageView
+                android:layout_width="1dp"
+                android:layout_height="1dp"/>
 
         </LinearLayout>
 

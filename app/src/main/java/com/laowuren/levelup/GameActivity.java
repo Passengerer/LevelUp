@@ -41,6 +41,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     private ArrayList<Byte> duizi;      // ¶Ô×Ó
     private ArrayList<Byte> firstCards;
     private int firstCardsCount;
+    private int acceptCardsCount;
     private int zhuCount = 0;
     private int heartCount = 0;
     private int clubCount = 0;
@@ -282,10 +283,13 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                     return;
                 }
                 if (CodeUtil.getHeader(code) == CodeUtil.FIRSTPLAY){
-                    firstCards.clear();
-                    firstCardsCount = 0;
+                    clearPlayRegion();
                     firstPlayerId = CodeUtil.getTail(code);
                     return;
+                }
+                if (code == CodeUtil.SHUAIFAIL){
+                    clearPlayRegion();
+                    Toast.makeText(GameActivity.this, "Ë¦ÅÆ·¸¹æ", Toast.LENGTH_SHORT).show();
                 }
                 if (CodeUtil.getHeader(code) == CodeUtil.PLAYTURN){
                     if (stat != GAMESTATE.PLAY) {
@@ -307,7 +311,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                     return;
                 }
                 if (stat != GAMESTATE.PLAY) {
-                    addCard(code);
+                    addCard(code, false);
                 }
                 if (stat == GAMESTATE.PLAY && (code & 0xe0) == 0xe0){
                     firstCardsCount = (code & 0x1f);
@@ -315,13 +319,20 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                     return;
                 }
                 if (stat == GAMESTATE.PLAY){
+                    ++acceptCardsCount;
                     if (whoPlay == firstPlayerId){
-                        firstCards.add(code);
+                        if (firstCards.size() < firstCardsCount)
+                            firstCards.add(code);
                         if (firstCards.size() == firstCardsCount){
                             Log.d("first cards", firstCards.toString());
                         }
                     }
-                    addCardToPlayRegion(code, whoPlay);
+                    if (acceptCardsCount <= firstCardsCount) {
+                        addCardToPlayRegion(code, whoPlay);
+                    }else {
+                        addCard(code, true);
+                        Log.d("shuaipai failed", code + "");
+                    }
                 }
             }
         };
@@ -354,6 +365,17 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         }
         codeCom.setCardComparator(com);
         ruler.setCodeComparator(codeCom);
+    }
+
+    protected void clearPlayRegion(){
+        firstCards.clear();
+        firstCardsCount = 0;
+        acceptCardsCount = 0;
+        for (int i = 0; i < playCardsLayouts.length; ++i){
+            for (int j = playCardsLayouts[i].getChildCount() - 1; j >= 2; --j) {
+                playCardsLayouts[i].removeViewAt(j);
+            }
+        }
     }
 
     protected void updateChupaiButton(){
@@ -581,7 +603,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         playCardsLayouts[loc].addView(view);
     }
 
-    protected void addCard(byte code){
+    protected void addCard(byte code, boolean callOnClick){
         Card card = CodeUtil.getCardFromCode(code);
         Rank _rank = card.getRank();
         /*
@@ -626,7 +648,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         if (index > 0) {
             imageView.setLayoutParams(params);
             handCardsLayout.addView(imageView, index);
-            if (stat == GAMESTATE.MAIPAI){
+            if (stat == GAMESTATE.MAIPAI || callOnClick){
                 imageView.callOnClick();
             }
         }

@@ -18,6 +18,7 @@ public class CodeUtil {
     public final static byte SUCCESS = (byte)0xf5;	// -11 请求成功
     public final static byte EXIT = (byte)0xff;	//
     public final static byte BUFAN = (byte)0xf7;
+    public final static byte SHUAIFAIL = (byte)0xf8;
 
     public final static byte ROOMID = (byte)0x60;	// -32 房间id 0110 00 00 后4位中前两位表示房间号，后两位表示玩家id
     public final static byte ZHUSUIT = (byte)0xd0;	//  主牌花色 1101 0000 后4位表示花色, 4-小王, 5-大王
@@ -40,6 +41,79 @@ public class CodeUtil {
 
     public static byte getHigher(byte b){
         return (byte)((b & 0xf0) >> 4);
+    }
+
+    public static Byte getCodeFromCard(Card card) {
+        byte code = -1;
+        if (card.getRank() == Rank.Joker_red) {
+            code = 0x4d;
+        }
+        else if (card.getRank() == Rank.Joker_black) {
+            code = 0x4e;
+        }
+        else {
+            byte header = -1;
+            byte tail = -1;
+            switch (card.getSuit()) {
+                case Heart:
+                    header = 0;
+                    break;
+                case Club:
+                    header = 1;
+                    break;
+                case Diamond:
+                    header = 2;
+                    break;
+                case Spade:
+                    header = 3;
+                    break;
+                default:
+                    break;
+            }
+            switch (card.getRank()) {
+                case Three:
+                    tail = 0;
+                    break;
+                case Four:
+                    tail = 1;
+                    break;
+                case Five:
+                    tail = 2;
+                    break;
+                case Six:
+                    tail = 3;
+                    break;
+                case Seven:
+                    tail = 4;
+                    break;
+                case Eight:
+                    tail = 5;
+                    break;
+                case Nine:
+                    tail = 6;
+                    break;
+                case Ten:
+                    tail = 7;
+                    break;
+                case Jack:
+                    tail = 8;
+                    break;
+                case Queen:
+                    tail = 9;
+                    break;
+                case King:
+                    tail = 10;
+                    break;
+                case Ace:
+                    tail = 11;
+                    break;
+                case Deuce:
+                    tail = 12;
+                    break;
+            }
+            code = (byte)(header << 4 | tail);
+        }
+        return code;
     }
 
     public static Card getCardFromCode(byte code){

@@ -8,8 +8,14 @@ import com.laowuren.levelup.others.Rank;
 import com.laowuren.levelup.others.Suit;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class PlayRuler {
+
+    public final static int DAN = 1;
+    public final static int DUI = 2;
+    public final static int LIANDUI = 3;
+    public final static int SHUAI = 4;
 	
 	private Card zhu;
 	private CodeComparator com;
@@ -89,5 +95,44 @@ public class PlayRuler {
 			return false;
 		}
 	}
+
+    public int getType(ArrayList<Byte> cards) {
+        // 只有1张牌
+        if (cards.size() == 1) {
+            return DAN;
+        }
+        if (cards.size() % 2 == 1) {
+            return SHUAI;
+        }
+        ArrayList<Byte> dan = CardsParser.getDan(cards);
+        if (dan != null && dan.size() > 1) {
+            return SHUAI;
+        }
+        ArrayList<Byte> dui = CardsParser.getDui(cards);
+        // 有对
+        if (dui != null) {
+            // 只有一对
+            if (dui.size() == 1) {
+                if (cards.size() == 2)
+                    return DUI;
+                else return SHUAI;
+            }else {
+                // 不止一对
+                if (Build.VERSION.SDK_INT >= 24)
+                    dui.sort(com);
+                HashMap<Byte, Integer> liandui = CardsParser.getLiandui(cards, zhu);
+                if (liandui == null) {
+                    return SHUAI;
+                }else {
+                    if (liandui.containsKey(dui.get(0)) && liandui.get(dui.get(0)) == dui.size()) {
+                        return LIANDUI;
+                    }else {
+                        return SHUAI;
+                    }
+                }
+            }
+        }
+        return -1;
+    }
 
 }

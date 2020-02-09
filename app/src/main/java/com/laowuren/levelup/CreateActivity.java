@@ -21,8 +21,8 @@ public class CreateActivity extends AppCompatActivity {
     private TextView roomIdText;
     private ProgressBar progressBar;
 
-    private final String waitStr = "ç­‰å¾…å…¶ä»–ç©å®¶";
-    private final String errorStr = "æœåŠ¡å™¨å·²æ»¡";
+    private final String waitStr = "µÈ´ıÆäËûÍæ¼Ò";
+    private final String errorStr = "·şÎñÆ÷ÒÑÂú";
 
     private int playerId;
 
