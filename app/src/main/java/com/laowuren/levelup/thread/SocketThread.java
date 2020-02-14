@@ -37,7 +37,7 @@ public class SocketThread extends Thread {
         for (byte card : cards){
             send(card);
             try{
-                Thread.sleep(50);
+                Thread.sleep(20);
             }catch (Exception e){}
         }
     }

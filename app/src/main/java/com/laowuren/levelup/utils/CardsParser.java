@@ -1,24 +1,22 @@
 package com.laowuren.levelup.utils;
 
+import android.os.Build;
+import android.util.Log;
+
 import com.laowuren.levelup.others.Card;
 import com.laowuren.levelup.others.Rank;
 import com.laowuren.levelup.others.Suit;
-import com.laowuren.levelup.utils.CodeUtil;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 public class CardsParser {
 	
 	public static ArrayList<Byte> getDan(ArrayList<Byte> cards){
 		ArrayList<Byte> dan = new ArrayList<>();
-		for (byte b : cards) {
-			if (dan.contains(b)) {
-				dan.remove(b);
-			}else {
-				dan.add(b);
-			}
-		}
+		ArrayList<Byte> dui = getDui(cards);
+		dan.addAll(cards);
+		dan.removeAll(dui);
 		return dan;
 	}
 	
@@ -35,11 +33,12 @@ public class CardsParser {
 		return dui;
 	}
 	
-	public static HashMap<Byte, Integer> getLiandui(ArrayList<Byte> cards, Card zhu){
+	public static LinkedHashMap<Byte, Integer> getLiandui(ArrayList<Byte> cards, Card zhu){
+		Log.d("CardsParser", "getLiandui");
 		ArrayList<Byte> dui = getDui(cards);
-		HashMap<Byte, Integer> ret = new HashMap<>();
+		LinkedHashMap<Byte, Integer> ret = new LinkedHashMap<>();
 		if (dui == null || dui.size() < 2) {
-			return null;
+			return ret;
 		}
 		byte now;
 		byte next;
@@ -51,7 +50,8 @@ public class CardsParser {
 			if (checkNext(now, next, zhu)) {
 				++length;
 				if (ret.containsKey(start)) {
-					ret.replace(start, length);
+					if (Build.VERSION.SDK_INT >= 24	)
+						ret.replace(start, length);
 				}else {
 					start = now;
 					ret.put(start, length);
@@ -61,9 +61,9 @@ public class CardsParser {
 				length = 1;
 			}
 		}
-		return ret.isEmpty() ? null : ret;
+		Log.d("liandui", "" + ret.size());
+		return ret;
 	}
-	
 	/**
 	 * code1应比code2大
 	 * @param code1
@@ -214,5 +214,28 @@ public class CardsParser {
 		}
 		return zhu;
 	}
+
+    public static ArrayList<Byte> getAllZhu(ArrayList<Byte> cards, Card zhu){
+        ArrayList<Byte> ret = getZhu(cards, zhu.getRank());
+        if (zhu.getSuit() != null){
+            ArrayList<Byte> xiaoZhu = null;
+            switch (zhu.getSuit()){
+                case Heart:
+                    xiaoZhu = getHeart(cards, zhu.getRank());
+                    break;
+                case Club:
+                    xiaoZhu = getClub(cards, zhu.getRank());
+                    break;
+                case Diamond:
+                    xiaoZhu = getDiamond(cards, zhu.getRank());
+                    break;
+                case Spade:
+                    xiaoZhu = getSpade(cards, zhu.getRank());
+                    break;
+            }
+            ret.addAll(xiaoZhu);
+        }
+        return ret;
+    }
 
 }

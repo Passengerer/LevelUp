@@ -16,9 +16,12 @@ public class CodeUtil {
     public final static byte FAILED2 = (byte)0xf3;	// -13 房间人数已满
     public final static byte FAILED3 = (byte)0xf4;	// -12 错误请求
     public final static byte SUCCESS = (byte)0xf5;	// -11 请求成功
-    public final static byte EXIT = (byte)0xff;	//
+    public final static byte EXIT = (byte)0xfe;	//
     public final static byte BUFAN = (byte)0xf7;
     public final static byte SHUAIFAIL = (byte)0xf8;
+    public final static byte HEARTBEAT = (byte)0xf9;	// 发送心跳信息
+    public final static byte GAMEOVER = (byte)0xfa;	// 游戏结束
+    public final static byte GAMESTART = (byte)0xfb;	// 游戏开始
 
     public final static byte ROOMID = (byte)0x60;	// -32 房间id 0110 00 00 后4位中前两位表示房间号，后两位表示玩家id
     public final static byte ZHUSUIT = (byte)0xd0;	//  主牌花色 1101 0000 后4位表示花色, 4-小王, 5-大王

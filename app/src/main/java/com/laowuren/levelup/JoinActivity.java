@@ -101,7 +101,6 @@ public class JoinActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        sThread.send(CodeUtil.EXIT);
         sThread.stop = true;
     }
 }

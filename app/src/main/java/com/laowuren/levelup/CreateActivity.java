@@ -75,7 +75,6 @@ public class CreateActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        sThread.send(CodeUtil.EXIT);
         sThread.stop = true;
     }
 }
