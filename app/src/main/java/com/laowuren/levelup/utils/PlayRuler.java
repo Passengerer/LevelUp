@@ -218,7 +218,7 @@ public class PlayRuler {
                             // 自己对子够，则出的对子数应等于第一家出的连对的对子数
                             if (selfDui.size() >= firstLianduiLength){
                                 Log.d("PlayRuler-checkRules", "14");
-                                if (playDui.size() < firstLianduiFirstCard){
+                                if (playDui.size() < firstLianduiLength){
                                     Log.d("PlayRuler-checkRules", "15");
                                     return false;
                                 }else{
@@ -502,7 +502,7 @@ public class PlayRuler {
                             // 自己对子够，则出的对子数应等于第一家出的连对的对子数
                             if (selfDui.size() >= firstLianduiLength) {
                                 Log.d("PlayRuler-checkRules", "39");
-                                if (playDui.size() < firstLianduiFirstCard) {
+                                if (playDui.size() < firstLianduiLength) {
                                     Log.d("PlayRuler-checkRules", "40");
                                     return false;
                                 } else {
@@ -878,7 +878,7 @@ public class PlayRuler {
                             // 自己对子够，则出的对子数应等于第一家出的连对的对子数
                             if (selfZhuDui.size() >= firstLianduiLength){
                                 Log.d("PlayRuler-checkRules", "14");
-                                if (playZhuDui.size() < firstLianduiFirstCard){
+                                if (playZhuDui.size() < firstLianduiLength){
                                     Log.d("PlayRuler-checkRules", "15");
                                     return false;
                                 }else{

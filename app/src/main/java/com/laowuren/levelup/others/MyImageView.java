@@ -1,13 +1,9 @@
 package com.laowuren.levelup.others;
 
 import android.content.Context;
-import android.graphics.BitmapFactory;
-import android.util.Log;
-import android.view.MotionEvent;
 import android.widget.ImageView;
 
-import com.laowuren.levelup.utils.CodeUtil;
-import com.laowuren.levelup.utils.ResourceUtil;
+import com.laowuren.levelup.utils.BitmapManager;
 
 /**
  * Created by Administrator on 2020/1/30/030.
@@ -19,8 +15,6 @@ public class MyImageView extends ImageView {
     public boolean play = false;
     public int topMargin;
 
-    private static boolean touch = false;
-
     public MyImageView(Context context, int topMargin){
         super(context);
         this.topMargin = topMargin;
@@ -28,8 +22,7 @@ public class MyImageView extends ImageView {
 
     public void setImg(byte code){
         this.code = code;
-        setImageBitmap(BitmapFactory.decodeResource(getResources(),
-                ResourceUtil.getIDByName(CodeUtil.getCardFromCode(code).toString().toLowerCase())));
+        setImageBitmap(BitmapManager.bitmapHashMap.get(code));
         setScaleType(ScaleType.FIT_XY);
     }
 

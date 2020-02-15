@@ -1,7 +1,6 @@
 package com.laowuren.levelup;
 
 import android.content.pm.ActivityInfo;
-import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -9,6 +8,8 @@ import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -19,17 +20,19 @@ import android.widget.Toast;
 import com.laowuren.levelup.others.Card;
 import com.laowuren.levelup.others.CardComparator;
 import com.laowuren.levelup.others.CodeComparator;
+import com.laowuren.levelup.others.ImageViewsComparator;
 import com.laowuren.levelup.others.MyImageView;
 import com.laowuren.levelup.others.Rank;
 import com.laowuren.levelup.others.Suit;
 import com.laowuren.levelup.thread.SocketThread;
+import com.laowuren.levelup.utils.BitmapManager;
+import com.laowuren.levelup.utils.CardsParser;
 import com.laowuren.levelup.utils.CodeUtil;
 import com.laowuren.levelup.utils.PlayRuler;
-import com.laowuren.levelup.utils.ResourceUtil;
 
 import java.util.ArrayList;
 
-public class GameActivity extends AppCompatActivity implements View.OnClickListener {
+public class GameActivity extends AppCompatActivity implements View.OnClickListener, View.OnTouchListener {
 
     private SocketThread sThread;
     private final String strBreakRules = "出牌犯规";
@@ -38,7 +41,6 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     private int whoPlay;      // 当前出牌玩家id
     private int firstPlayerId;  // 每轮第一个出牌的玩家id
     private ArrayList<Byte> handCards;
-    private ArrayList<Byte> duizi;      // 对子
     private ArrayList<Byte> firstCards;
     private int firstCardsCount;
     private int acceptCardsCount;
@@ -50,6 +52,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     private boolean selfTurn = false;
     private GAMESTATE stat = GAMESTATE.INIT;
     private int zhuangJia = -1;
+    private int score = 0;
     private boolean isZhuangJia = false;
     private boolean isFirstGame = true;
 
@@ -59,15 +62,18 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     private boolean[] hasFanColor;
     private boolean bizhuang = false;
     private boolean selfMaipai = false;
+    private int showSuitId = -1;
 
     private CardComparator com;
     private CodeComparator codeCom;
+    private ImageViewsComparator imgCom;
 
     private TextView scoreText;
     private TextView ourLevelText;
     private TextView othersLevelText;
     private LinearLayout handCardsLayout;
     private LinearLayout[] playCardsLayouts;
+    private LinearLayout[] playedLayouts;
     private ArrayList<ImageView> playImages;
     private LinearLayout.LayoutParams params;
     private LinearLayout.LayoutParams smallParams;
@@ -77,6 +83,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     private Button noZhuFan;
     private Button maipaiButton;
     private Button chupaiButton;
+    private Button[] chapaiButtons;
 
     private ImageView[] showImages;
     private ImageView[] turnImage;
@@ -110,6 +117,15 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         showButtons[5].setOnClickListener(this);
         showBuFan = (Button)findViewById(R.id.show_bufan);
         showBuFan.setOnClickListener(this);
+        chapaiButtons = new Button[4];
+        chapaiButtons[0] = (Button)findViewById(R.id.button_chapai_self);
+        chapaiButtons[0].setOnTouchListener(this);
+        chapaiButtons[1] = (Button)findViewById(R.id.button_chapai_right);
+        chapaiButtons[1].setOnTouchListener(this);
+        chapaiButtons[2] = (Button)findViewById(R.id.button_chapai_top);
+        chapaiButtons[2].setOnTouchListener(this);
+        chapaiButtons[3] = (Button)findViewById(R.id.button_chapai_left);
+        chapaiButtons[3].setOnTouchListener(this);
         hasFanColor = new boolean[4];
         zhuImage = (ImageView)findViewById(R.id.image_zhu);
         noZhuFan = (Button)findViewById(R.id.no_fan);
@@ -124,11 +140,15 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         playCardsLayouts[1] = (LinearLayout)findViewById(R.id.right_play_region);
         playCardsLayouts[2] = (LinearLayout)findViewById(R.id.top_play_region);
         playCardsLayouts[3] = (LinearLayout)findViewById(R.id.left_play_region);
+        playedLayouts = new LinearLayout[4];
+        playedLayouts[0] = (LinearLayout)findViewById(R.id.self_played);
+        playedLayouts[1] = (LinearLayout)findViewById(R.id.right_played);
+        playedLayouts[2] = (LinearLayout)findViewById(R.id.top_played);
+        playedLayouts[3] = (LinearLayout)findViewById(R.id.left_played);
         playImages = new ArrayList<>();
         playerId = getIntent().getIntExtra("playerId", -1);
         Log.d("playerId", playerId + "");
         handCards = new ArrayList<>();
-        duizi = new ArrayList<>();
         playCards = new ArrayList<>();
         firstCards = new ArrayList<>();
         dm = getResources().getDisplayMetrics();
@@ -147,6 +167,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         com = new CardComparator();
         ruler = new PlayRuler();
         codeCom = new CodeComparator();
+        imgCom = new ImageViewsComparator();
 
         showImages = new ImageView[8];
         showImages[0] = (ImageView)findViewById(R.id.image_show00);
@@ -175,13 +196,15 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     protected void initGame(){
         stat = GAMESTATE.INIT;
         Log.d("init game", "init");
-        scoreText.setText("分数: 0");
         clearHandCardsRegion();
-        clearPlayRegion();
+        clearPlayRegion(false);
+        clearPlayedRegion();
+        scoreText.setText("分数: 0");
+        score = 0;
+        showSuitId = -1;
         whoPlay = -1;
         firstPlayerId = -1;
         handCards.clear();
-        duizi.clear();      // 对子
         firstCards.clear();
         firstCardsCount = 0;
         acceptCardsCount = 0;
@@ -189,7 +212,6 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         suit = 0x10;
         selfFan = false;
         selfTurn = false;
-        zhuangJia = -1;
         isZhuangJia = false;
         hasSetZhu = false;
         hasDing = false;
@@ -203,8 +225,9 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
 
     protected void gameOver(){
         isFirstGame = false;
-        clearPlayRegion();
+        clearPlayRegion(false);
         setAllTurnImageInvisible();
+        setChapaiButtonsVisibility(View.INVISIBLE);
     }
 
     protected void initSocket() {
@@ -259,7 +282,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                     zhu = (byte)((suit << 4) | (zhu & 0x0f));
                     Log.d("liang", "" + suit);
                     // 亮牌者id
-                    int showSuitId = CodeUtil.getTail(code) & 0x03;
+                    showSuitId = CodeUtil.getTail(code) & 0x03;
                     setZhuImage(zhu, showSuitId, false);
                     if (showSuitId == playerId) {
                         selfFan = true;
@@ -281,15 +304,16 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                         return;
                     }
                     if (stat == GAMESTATE.PLAY){
-                        int score = code & 0x3f;
-                        scoreText.setText("分数: " + score * 5);
+                        int turnScoreCode = code & 0x0f;
+                        score = score + turnScoreCode * 5;
+                        scoreText.setText("分数: " + score);
                         return;
                     }
                     suit = (byte)(CodeUtil.getTail(code) >> 2);
                     zhu = (byte)((suit << 4) | (zhu & 0x0f));
                     Log.d("fan", "" + zhu);
                     Log.d("suit", "" + suit);
-                    int showSuitId = CodeUtil.getTail(code) & 0x03;
+                    showSuitId = CodeUtil.getTail(code) & 0x03;
                     setZhuImage(zhu, showSuitId, true);
                     if (showSuitId == playerId){
                         selfFan = true;
@@ -304,7 +328,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                     hasDing = true;
                     suit = (byte)(CodeUtil.getTail(code) >> 2);
                     zhu = (byte)((suit << 4) | (zhu & 0x0f));
-                    int showSuitId = CodeUtil.getTail(code) & 0x03;
+                    showSuitId = CodeUtil.getTail(code) & 0x03;
                     setZhuImage(zhu, showSuitId, true);
                     if (showSuitId == playerId){
                         selfFan = true;
@@ -320,7 +344,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                     int wang = (CodeUtil.getTail(code) >> 2);
                     suit = (byte)(wang == 0 ? 0x04 : 0x05);
                     zhu = (byte)(zhu & 0x0f);
-                    int showSuitId = CodeUtil.getTail(code) & 0x03;
+                    showSuitId = CodeUtil.getTail(code) & 0x03;
                     if (wang == 0) {
                         setZhuImage((byte)0x4d, showSuitId, true);
                     }else {
@@ -366,12 +390,12 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 if (CodeUtil.getHeader(code) == CodeUtil.FIRSTPLAY){
                     Log.d("firstplay", "");
-                    clearPlayRegion();
+                    clearPlayRegion(true);
                     firstPlayerId = CodeUtil.getTail(code);
                     return;
                 }
                 if (code == CodeUtil.SHUAIFAIL){
-                    clearPlayRegion();
+                    clearPlayRegion(false);
                     Toast.makeText(GameActivity.this, "甩牌犯规", Toast.LENGTH_SHORT).show();
                 }
                 if (CodeUtil.getHeader(code) == CodeUtil.PLAYTURN){
@@ -380,6 +404,8 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                         setRuler();
                         setShowButtonsGone();
                         setShowImages(View.GONE);
+                        setChapaiButtonsVisibility(View.VISIBLE);
+                        sortHandCardsLayout();
                         Log.d("stat", stat.toString());
                     }
                     int playId = CodeUtil.getTail(code);
@@ -398,6 +424,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 if (stat == GAMESTATE.PLAY && (code & 0xe0) == 0xe0){
                     acceptCardsCount = 0;
+                    if (whoPlay == firstPlayerId)
                     firstCardsCount = (code & 0x1f);
                     Log.d("firstCardsCount", firstCardsCount + "");
                     return;
@@ -424,6 +451,30 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         Log.d("GameActivity", "socket thread start");
     }
 
+    protected void sortHandCardsLayout(){
+        if (Build.VERSION.SDK_INT >= 24)
+            handCards.sort(codeCom);
+        ArrayList<MyImageView> imageViews = new ArrayList<>();
+        for (int i = handCardsLayout.getChildCount() - 1; i > 0; --i){
+            imageViews.add((MyImageView)handCardsLayout.getChildAt(i));
+            handCardsLayout.removeViewAt(i);
+        }
+        if (Build.VERSION.SDK_INT >= 24)
+            imageViews.sort(imgCom);
+        for (int i = 0; i < imageViews.size(); ++i){
+            System.out.println(imageViews);
+            handCardsLayout.addView(imageViews.get(i));
+        }
+    }
+
+    protected void setChapaiButtonsVisibility(int visibility){
+        for (int i = 0; i < chapaiButtons.length; ++i){
+            if (chapaiButtons[i].getVisibility() != visibility){
+                chapaiButtons[i].setVisibility(visibility);
+            }
+        }
+    }
+
     protected void setLevelText(){
         String level = "";
         switch (zhu & 0x0f){
@@ -440,10 +491,15 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
             case 10: level = "K"; break;
             case 11: level = "A"; break;
         }
+        Log.d("zhuangjia", "" + zhuangJia);
         if ((zhuangJia + playerId) % 2 == 0){
             ourLevelText.setText("我方: " + level);
+            ourLevelText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+            othersLevelText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         }else{
             othersLevelText.setText("对方: " + level);
+            othersLevelText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+            ourLevelText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         }
     }
 
@@ -457,15 +513,28 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         }
         codeCom.setCardComparator(com);
         ruler.setCom(codeCom);
+        imgCom.setCodeCom(codeCom);
     }
 
-    protected void clearPlayRegion(){
+    protected void clearPlayedRegion(){
+        for (int i = 0; i < playedLayouts.length; ++i){
+            for (int j = playedLayouts[i].getChildCount() - 1; j > 0; --j){
+                playedLayouts[i].removeViewAt(j);
+            }
+        }
+    }
+
+    protected void clearPlayRegion(boolean addToPlayedRegion){
         firstCards.clear();
         firstCardsCount = 0;
         acceptCardsCount = 0;
         for (int i = 0; i < playCardsLayouts.length; ++i){
             for (int j = playCardsLayouts[i].getChildCount() - 1; j >= 2; --j) {
+                View view = playCardsLayouts[i].getChildAt(j);
                 playCardsLayouts[i].removeViewAt(j);
+                if (addToPlayedRegion) {
+                    playedLayouts[i].addView(view);
+                }
             }
         }
     }
@@ -575,10 +644,12 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     protected void updateShowButtons() {
+        Log.d("self fan", selfFan + "");
         if (stat == GAMESTATE.PLAY){
             return;
         }
         if (bizhuang){
+            bizhuang = false;
             if (isZhuangJia) {
                 for (int i = 0; i < 4; ++i) {
                     if (hasCard((byte) ((i << 4) | (byte) zhu))) {
@@ -595,18 +666,25 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
             return;
         }
         if (stat == GAMESTATE.MAIPAI && selfMaipai){
+            Log.d("maipai", "0");
             setAllShowButtonsInvisible();
             return;
         }
         if (stat == GAMESTATE.MAIPAI && !selfTurn){
+            Log.d("maipai", "1");
             setAllShowButtonsInvisible();
             return;
         }
         if (stat == GAMESTATE.MAIPAI && !selfMaipai && selfTurn){
+            Log.d("maipai", "2");
             setAllShowButtonsInvisible();
             showBuFan.setEnabled(true);
             showBuFan.setVisibility(View.VISIBLE);
+            if (selfFan){
+                return;
+            }
             if (hasDing){
+                Log.d("maipai", "3");
                 if (hasDuizi((byte) 0x4d)) {
                     setShowButtonsVisible(4);
                 }
@@ -615,6 +693,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
             if (!hasFanWang && !hasDing){
+                Log.d("maipai", "4");
                 if (hasDuizi((byte) 0x4d)) {
                     setShowButtonsVisible(4);
                 }
@@ -628,6 +707,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
             if (hasFanWang){
+                Log.d("maipai", "5");
                 if (hasDuizi((byte) 0x4e)) {
                     setShowButtonsVisible(5);
                 }
@@ -635,6 +715,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
             return;
         }
         if (!hasSetZhu) {
+            Log.d("maipai", "6");
             for (int i = 0; i < 4; ++i) {
                 if (hasCard((byte)((i << 4) | (zhu & 0x0f)))) {
                     setShowButtonsVisible(i);
@@ -642,15 +723,18 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
         if (hasSetZhu && !hasFanWang && selfFan && !hasDing) {
+            Log.d("maipai", "7");
             setAllShowButtonsInvisible();
             if (hasDuizi((byte) zhu)) {
                 setShowButtonsVisible(zhu >> 4);
             }
         }
         if (hasSetZhu && !hasFanWang && selfFan && hasDing) {
+            Log.d("maipai", "8");
             setAllShowButtonsInvisible();
         }
         if (hasSetZhu && !hasFanWang && !selfFan && !hasDing) {
+            Log.d("maipai", "9");
             setAllShowButtonsInvisible();
             if (!isFirstGame) {
                 if (hasDuizi((byte) 0x4d)) {
@@ -667,6 +751,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
         if (hasSetZhu && !hasFanWang && !selfFan && hasDing){
+            Log.d("maipai", "10");
             setAllShowButtonsInvisible();
             if (!isFirstGame){
                 if (hasDuizi((byte) 0x4d)) {
@@ -678,9 +763,11 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
         if (hasSetZhu && selfFan && hasFanWang){
+            Log.d("maipai", "11");
             setAllShowButtonsInvisible();
         }
         if (hasSetZhu && !selfFan && hasFanWang){
+            Log.d("maipai", "12");
             setAllShowButtonsInvisible();
             if (hasDuizi((byte) 0x4e)) {
                 setShowButtonsVisible(5);
@@ -691,8 +778,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     protected void addCardToPlayRegion(byte card, int id){
         int loc = id - playerId;
         ImageView view = new ImageView(GameActivity.this);
-        view.setImageBitmap(BitmapFactory.decodeResource(getResources(),
-                ResourceUtil.getIDByName(CodeUtil.getCardFromCode(card).toString().toLowerCase())));
+        view.setImageBitmap(BitmapManager.bitmapHashMap.get(card));
         view.setLayoutParams(smallParams);
         loc = loc < 0 ? loc + 4 : loc;
         playCardsLayouts[loc].addView(view);
@@ -732,9 +818,6 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                 imageView.callOnClick();
             }
         }
-        if (handCards.contains(code)) {
-            duizi.add(code);
-        }
         handCards.add(index - 1, code);
         updateShowButtons();
     }
@@ -744,7 +827,8 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     protected boolean hasDuizi(byte code){
-        return duizi.contains(code);
+        ArrayList<Byte> dui = CardsParser.getDui(handCards);
+        return dui.contains(code);
     }
 
     protected int getIndex(byte code){
@@ -864,6 +948,54 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    protected void setPlayedLayoutInvisible(){
+        for (int i = 0; i < playedLayouts.length; ++i){
+            if (playedLayouts[i].getVisibility() != View.INVISIBLE){
+                playedLayouts[i].setVisibility(View.INVISIBLE);
+            }
+        }
+    }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        switch (event.getAction()){
+            case MotionEvent.ACTION_DOWN:
+                setPlayedLayoutInvisible();
+                switch (v.getId()){
+                    case R.id.button_chapai_self:
+                        playedLayouts[0].setVisibility(View.VISIBLE);
+                        break;
+                    case R.id.button_chapai_right:
+                        playedLayouts[1].setVisibility(View.VISIBLE);
+                        break;
+                    case R.id.button_chapai_top:
+                        playedLayouts[2].setVisibility(View.VISIBLE);
+                        break;
+                    case R.id.button_chapai_left:
+                        playedLayouts[3].setVisibility(View.VISIBLE);
+                        break;
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+                switch (v.getId()){
+                    case R.id.button_chapai_self:
+                        playedLayouts[0].setVisibility(View.INVISIBLE);
+                        break;
+                    case R.id.button_chapai_right:
+                        playedLayouts[1].setVisibility(View.INVISIBLE);
+                        break;
+                    case R.id.button_chapai_top:
+                        playedLayouts[2].setVisibility(View.INVISIBLE);
+                        break;
+                    case R.id.button_chapai_left:
+                        playedLayouts[3].setVisibility(View.INVISIBLE);
+                        break;
+                }
+                break;
+        }
+        return true;
+    }
+
     protected boolean checkPlay() {
         // 如果自己先出，只检查花色是否统一
         if (firstPlayerId == playerId) {
@@ -877,8 +1009,10 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
 
      protected void setSelfTurnFalse() {
          selfTurn = false;
-         maipaiButton.setVisibility(View.GONE);
-         chupaiButton.setVisibility(View.GONE);
+         maipaiButton.setEnabled(false);
+         maipaiButton.setVisibility(View.INVISIBLE);
+         chupaiButton.setEnabled(false);
+         chupaiButton.setVisibility(View.INVISIBLE);
      }
 
     protected void setShowImages(int visibility){
@@ -896,16 +1030,13 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         int loc = id - playerId;
         loc = loc < 0 ? loc + 4 : loc;
         Log.d("show loc", "" + loc);
-        showImages[loc * 2].setImageBitmap(BitmapFactory.decodeResource(getResources(),
-                ResourceUtil.getIDByName(zhuName)));
+        showImages[loc * 2].setImageBitmap(BitmapManager.bitmapHashMap.get(code));
         showImages[loc * 2].setVisibility(View.VISIBLE);
         if (dui){
-            showImages[loc * 2 + 1].setImageBitmap(BitmapFactory.decodeResource(getResources(),
-                    ResourceUtil.getIDByName(zhuName)));
+            showImages[loc * 2 + 1].setImageBitmap(BitmapManager.bitmapHashMap.get(code));
             showImages[loc * 2 + 1].setVisibility(View.VISIBLE);
         }
-        zhuImage.setImageBitmap(BitmapFactory.decodeResource(getResources(),
-                ResourceUtil.getIDByName(zhuName)));
+        zhuImage.setImageBitmap(BitmapManager.bitmapHashMap.get(code));
     }
 
     protected void updateTurnImage(int turn){

@@ -13,6 +13,68 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true">
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="invisible"
+                android:gravity="center"
+                android:id="@+id/self_played">
+
+                <ImageView
+                    android:layout_width="1dp"
+                    android:layout_height="1dp"
+                    android:layout_marginLeft="50dp"/>
+
+            </LinearLayout>
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="invisible"
+                android:gravity="center"
+                android:id="@+id/right_played">
+
+                <ImageView
+                    android:layout_width="1dp"
+                    android:layout_height="1dp"
+                    android:layout_marginLeft="50dp"/>
+
+            </LinearLayout>
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="invisible"
+                android:gravity="center"
+                android:id="@+id/top_played">
+
+                <ImageView
+                    android:layout_width="1dp"
+                    android:layout_height="1dp"
+                    android:layout_marginLeft="50dp"/>
+
+            </LinearLayout>
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="invisible"
+                android:gravity="center"
+                android:id="@+id/left_played">
+
+                <ImageView
+                    android:layout_width="1dp"
+                    android:layout_height="1dp"
+                    android:layout_marginLeft="50dp"/>
+
+            </LinearLayout>
+        </FrameLayout>
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -27,25 +89,28 @@
             android:layout_width="46dp"
             android:layout_height="70dp"
             android:id="@+id/image_zhu"
-            android:src="@drawable/back1"
+            android:src="@drawable/back"
+            android:layout_marginLeft="50dp"
             android:layout_alignParentTop="true"
             android:layout_alignParentRight="true"/>
 
         <TextView
-            android:layout_width="60dp"
-            android:layout_height="20dp"
+            android:layout_width="80dp"
+            android:layout_height="30dp"
             android:id="@+id/text_level_self"
             android:text="我方:3"
             android:textSize="16sp"
+            android:gravity="center"
             android:layout_alignParentTop="true"
             android:layout_alignParentLeft="true"/>
 
         <TextView
-            android:layout_width="60dp"
-            android:layout_height="20dp"
+            android:layout_width="80dp"
+            android:layout_height="30dp"
             android:id="@+id/text_level_others"
             android:layout_below="@id/text_level_self"
             android:text="对方:3"
+            android:gravity="center"
             android:textSize="16sp"/>
 
         <LinearLayout
@@ -121,6 +186,16 @@
 
         </LinearLayout>
 
+        <Button
+            android:layout_width="70dp"
+            android:layout_height="40dp"
+            android:id="@+id/button_chapai_right"
+            android:visibility="invisible"
+            android:text="查牌"
+            android:textSize="16sp"
+            android:layout_alignParentRight="true"
+            android:layout_below="@id/right_play_region"/>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -160,6 +235,15 @@
                 android:layout_marginLeft="20dp"/>
 
         </LinearLayout>
+
+        <Button
+            android:layout_width="70dp"
+            android:layout_height="40dp"
+            android:id="@+id/button_chapai_top"
+            android:visibility="invisible"
+            android:text="查牌"
+            android:textSize="16sp"
+            android:layout_toLeftOf="@id/image_zhu"/>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -201,6 +285,16 @@
         </LinearLayout>
 
         <Button
+            android:layout_width="70dp"
+            android:layout_height="40dp"
+            android:id="@+id/button_chapai_left"
+            android:visibility="invisible"
+            android:text="查牌"
+            android:textSize="16sp"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@id/left_play_region"/>
+
+        <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/no_fan"
@@ -225,12 +319,22 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/button_chupai"
-            android:visibility="gone"
             android:text="出牌"
+            android:visibility="invisible"
             android:enabled="false"
             android:textSize="20sp"
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"/>
+
+        <Button
+            android:layout_width="70dp"
+            android:layout_height="40dp"
+            android:id="@+id/button_chapai_self"
+            android:visibility="invisible"
+            android:text="查牌"
+            android:textSize="16sp"
+            android:layout_alignParentBottom="true"
+            android:layout_toLeftOf="@id/button_chupai"/>
 
         <LinearLayout
             android:layout_width="match_parent"

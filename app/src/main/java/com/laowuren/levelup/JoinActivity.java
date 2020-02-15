@@ -14,6 +14,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.laowuren.levelup.thread.SocketThread;
+import com.laowuren.levelup.utils.BitmapManager;
 import com.laowuren.levelup.utils.CodeUtil;
 
 public class JoinActivity extends AppCompatActivity {

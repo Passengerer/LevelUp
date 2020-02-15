@@ -6,6 +6,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 
+import com.laowuren.levelup.utils.BitmapManager;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     @Override
@@ -16,6 +18,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Button joinButton = (Button)findViewById(R.id.button_join);
         createButton.setOnClickListener(this);
         joinButton.setOnClickListener(this);
+
+        BitmapManager bm = new BitmapManager();
     }
 
     @Override
