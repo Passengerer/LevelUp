@@ -77,6 +77,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     private ArrayList<ImageView> playImages;
     private LinearLayout.LayoutParams params;
     private LinearLayout.LayoutParams smallParams;
+    private LinearLayout.LayoutParams spaceParams;
     private Button[] showButtons;
     private Button showBuFan;
     private ImageView zhuImage;
@@ -163,6 +164,8 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         params.leftMargin = leftMargin;
         smallParams = new LinearLayout.LayoutParams(imageWidth / 5 * 4, imageHeight / 5 * 4);
         smallParams.leftMargin = smallParams.width / 3 * 2 * -1;
+        spaceParams = new LinearLayout.LayoutParams(imageWidth / 5 * 4, imageHeight / 5 * 4);
+        spaceParams.leftMargin = smallParams.width / 6 * 5 * -1;
 
         com = new CardComparator();
         ruler = new PlayRuler();
@@ -182,6 +185,15 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         turnImage[0] = (ImageView)findViewById(R.id.turn_right);
         turnImage[1] = (ImageView)findViewById(R.id.turn_top);
         turnImage[2] = (ImageView)findViewById(R.id.turn_left);
+
+        TextView indexSelf = (TextView)findViewById(R.id.index_self);
+        indexSelf.setText(playerId % 4 + 1 + "");
+        TextView indexRight = (TextView)findViewById(R.id.index_right);
+        indexRight.setText((playerId + 1) % 4 + 1 + "");
+        TextView indexTop = (TextView)findViewById(R.id.index_top);
+        indexTop.setText((playerId + 2) % 4 + 1 + "");
+        TextView indexLeft = (TextView)findViewById(R.id.index_left);
+        indexLeft.setText((playerId + 3) % 4 + 1 + "");
 
         setUI();
         initSocket();
@@ -536,6 +548,10 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                     playedLayouts[i].addView(view);
                 }
             }
+            // Ìí¼ÓÒ»¸ö¿ÕÍ¼Æ¬
+            ImageView marginView = new ImageView(GameActivity.this);
+            marginView.setLayoutParams(spaceParams);
+            playedLayouts[i].addView(marginView);
         }
     }
 
@@ -1064,8 +1080,15 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d("GameActivity", "onPause");
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
+        Log.d("GameActivity", "onResume");
         // éšè—çŠ¶æ?æ å’Œè™šæ‹ŸæŒ‰é”?
         if (Build.VERSION.SDK_INT > 11 && Build.VERSION.SDK_INT < 19) { // lower api
             View v = this.getWindow().getDecorView();
