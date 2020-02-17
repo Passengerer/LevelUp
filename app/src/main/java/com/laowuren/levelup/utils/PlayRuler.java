@@ -721,7 +721,7 @@ public class PlayRuler {
                                     }
                                     // 出的所有对子算进去，计算差几对，计算差几张牌，取小
                                     lackDuiCount = firstDui.size() - playDui.size();
-                                    int lackCardsCount = firstCards.size() - suitCards.size();
+                                    int lackCardsCount = firstCards.size() - suitCards.size() - selfZhuDui.size() * 2;
                                     int needGuaCount = (lackDuiCount * 2) < lackCardsCount ?
                                             (lackDuiCount * 2) : lackCardsCount;
                                     selfZhuCards.removeAll(selfZhuDui);
@@ -759,6 +759,7 @@ public class PlayRuler {
                 }
                 // 自己一张都没有
                 Log.d("PlayRuler-checkRules", "73");
+                /* 甩单不垫主规则
                 // 第一家出的对子数多于手中主数，主全部出
                 ArrayList<Byte> playZhuCards = CardsParser.getAllZhu(playCards, zhu);
                 if (selfZhuCards.size() <= firstDui.size() * 2){
@@ -776,6 +777,26 @@ public class PlayRuler {
                         return false;
                     }
                 }
+                */
+                /* 甩单垫主规则 */
+                ArrayList<Byte> playZhuCards = CardsParser.getAllZhu(playCards, zhu);
+                // 第一家出的牌数多于手中主数，主全部出
+                if (selfZhuCards.size() <= firstCards.size()){
+                    Log.d("PlayRuler-checkRules", "74");
+                    if (playZhuCards.size() < selfZhuCards.size()){
+                        Log.d("PlayRuler-checkRules", "75");
+                        return false;
+                    }
+                    Log.d("PlayRuler-checkRules", "75-2");
+                    return true;
+                }else {
+                    // 手中主数多于第一家出的牌数，应出相应数量的主
+                    if (playZhuCards.size() < firstCards.size()) {
+                        Log.d("PlayRuler-checkRules", "75-3");
+                        return false;
+                    }
+                }
+
                 // 第一家出了连对
                 if (!firstLiandui.isEmpty()){
                     Log.d("PlayRuler-checkRules", "76");

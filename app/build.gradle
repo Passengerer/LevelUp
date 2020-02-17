@@ -8,8 +8,8 @@ android {
         applicationId "com.laowuren.levelup"
         minSdkVersion 15
         targetSdkVersion 24
-        versionCode 2
-        versionName "0.11"
+        versionCode 4
+        versionName "0.3"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         jackOptions.enabled = true;
     }

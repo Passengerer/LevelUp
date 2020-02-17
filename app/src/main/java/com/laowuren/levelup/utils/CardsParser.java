@@ -143,9 +143,7 @@ public class CardsParser {
 		for (byte b : cards) {
 			card = CodeUtil.getCardFromCode(b);
 			rank = card.getRank();
-			if (card.getSuit() == Suit.Heart && rank != Rank.Deuce &&
-					rank != Rank.Joker_black && rank != Rank.Joker_red && 
-					rank != level) {
+			if (card.getSuit() == Suit.Heart && rank != Rank.Deuce && rank != level) {
 				heart.add(b);
 			}
 		}
@@ -159,9 +157,7 @@ public class CardsParser {
 		for (byte b : cards) {
 			card = CodeUtil.getCardFromCode(b);
 			rank = card.getRank();
-			if (card.getSuit() == Suit.Club && rank != Rank.Deuce &&
-					rank != Rank.Joker_black && rank != Rank.Joker_red && 
-					rank != level) {
+			if (card.getSuit() == Suit.Club && rank != Rank.Deuce && rank != level) {
 				club.add(b);
 			}
 		}
@@ -175,9 +171,7 @@ public class CardsParser {
 		for (byte b : cards) {
 			card = CodeUtil.getCardFromCode(b);
 			rank = card.getRank();
-			if (card.getSuit() == Suit.Diamond && rank != Rank.Deuce &&
-					rank != Rank.Joker_black && rank != Rank.Joker_red && 
-					rank != level) {
+			if (card.getSuit() == Suit.Diamond && rank != Rank.Deuce && rank != level) {
 				diamond.add(b);
 			}
 		}
@@ -191,9 +185,7 @@ public class CardsParser {
 		for (byte b : cards) {
 			card = CodeUtil.getCardFromCode(b);
 			rank = card.getRank();
-			if (card.getSuit() == Suit.Spade && rank != Rank.Deuce &&
-					rank != Rank.Joker_black && rank != Rank.Joker_red && 
-					rank != level) {
+			if (card.getSuit() == Suit.Spade && rank != Rank.Deuce && rank != level) {
 				spade.add(b);
 			}
 		}
