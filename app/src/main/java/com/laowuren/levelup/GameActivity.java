@@ -233,6 +233,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         }
         bizhuang = false;
         selfMaipai = false;
+        setAllShowButtonsInvisible();
     }
 
     protected void gameOver(){

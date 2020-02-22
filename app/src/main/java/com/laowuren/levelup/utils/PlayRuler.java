@@ -288,7 +288,7 @@ public class PlayRuler {
                             updateSuitCards.addAll(suitCards);
                             updateFirstCards.addAll(firstCards);
                             updatePlayCards.addAll(playCards);
-                            for (int i = 0; i < firstLianduiLength; ++i){
+                            /*for (int i = 0; i < firstLianduiLength; ++i){
                                 removePlayCards.add(suitCards.get(i * 2));
                                 removePlayCards.add(suitCards.get(i * 2 + 1));
                             }
@@ -299,6 +299,25 @@ public class PlayRuler {
                                         Log.d("PlayRuler-checkRules", "20-2");
                                         return false;
                                     }
+                                }
+                            }*/
+                            if (Build.VERSION.SDK_INT >= 24){
+                                playCards.sort(com);
+                            }
+                            ArrayList<Byte> temp = new ArrayList<>();
+                            temp.addAll(suitCards);
+                            for (int i = 0; i < firstLianduiLength * 2; ++i){
+                                byte b = playCards.get(i);
+                                if (com.compare(temp.get(0), b) < 0){
+                                    if (checkYingZhu(CodeUtil.getCardFromCode(temp.get(0)))) {
+                                        Log.d("PlayRuler-checkRules", "20-3");
+                                        return false;
+                                    }else{
+                                        removePlayCards.add(b);
+                                    }
+                                }else{
+                                    temp.remove((Object)b);
+                                    removePlayCards.add(b);
                                 }
                             }
                             int removeFirstIndex = firstCards.indexOf(firstLianduiFirstCard);
@@ -363,8 +382,8 @@ public class PlayRuler {
                         } else {
                             // 手牌没有对子
                             Log.d("PlayRuler-checkRules", "27-2");
-                            ArrayList<Byte> removePlayCards = new ArrayList<>();
-                            for (int i = 0; i < firstDui.size(); ++i) {
+                            //ArrayList<Byte> removePlayCards = new ArrayList<>();
+                            /*for (int i = 0; i < firstDui.size(); ++i) {
                                 removePlayCards.add(suitCards.get(i * 2));
                                 removePlayCards.add(suitCards.get(i * 2 + 1));
                             }
@@ -379,6 +398,22 @@ public class PlayRuler {
                                         Log.d("PlayRuler-checkRules", "27-5");
                                         return true;
                                     }
+                                }
+                            }*/
+                            if (Build.VERSION.SDK_INT >= 24){
+                                playCards.sort(com);
+                            }
+                            ArrayList<Byte> temp = new ArrayList<>();
+                            temp.addAll(suitCards);
+                            for (int i = 0; i < firstDui.size() * 2; ++i){
+                                byte b = playCards.get(i);
+                                if (com.compare(temp.get(0), b) < 0){
+                                    if (checkYingZhu(CodeUtil.getCardFromCode(temp.get(0)))) {
+                                        Log.d("PlayRuler-checkRules", "20-3");
+                                        return false;
+                                    }
+                                }else{
+                                    temp.remove((Object)b);
                                 }
                             }
                             Log.d("PlayRuler-checkRules", "27-6");
@@ -696,7 +731,34 @@ public class PlayRuler {
                                         if (needDuiCount < lackDuiCount && (firstCards.size() - suitCards.size()) % 2 == 1) {
                                             lackCards = 1;
                                         }
-                                        int index = 0;
+                                        if (lackCards == 1){
+                                            if (Build.VERSION.SDK_INT >= 24){
+                                                playCards.sort(com);
+                                            }
+                                            ArrayList<Byte> remove = new ArrayList<>();
+                                            ArrayList<Byte> playZhu = CardsParser.getAllZhu(playCards, zhu);
+                                            ArrayList<Byte> playZhuDui = CardsParser.getDui(playZhu);
+                                            for (int i = 0; i < needDuiCount; ++i){
+                                                remove.add(playZhuDui.get(i));
+                                            }
+                                            selfZhuCards.removeAll(remove);
+                                            playCards.removeAll(remove);
+                                            ArrayList<Byte> temp = new ArrayList<>();
+                                            temp.addAll(selfZhuCards);
+                                            for (int i = 0; i < 1; ++i){
+                                                byte b = playCards.get(i);
+                                                if (com.compare(temp.get(0), b) < 0){
+                                                    if (checkYingZhu(CodeUtil.getCardFromCode(temp.get(0)))) {
+                                                        Log.d("PlayRuler-checkRules", "64-2");
+                                                        return false;
+                                                    }
+                                                }else{
+                                                    temp.remove((Object)b);
+                                                }
+                                            }
+                                        }
+                                        return true;
+                                        /*int index = 0;
                                         if (lackCards != 0){
                                             if (playDui.contains(selfZhuCards.get(index))){
                                                 ++index;
@@ -710,7 +772,7 @@ public class PlayRuler {
                                                 }
                                                 return true;
                                             }
-                                        }
+                                        }*/
                                     }
                                 }else{
                                     Log.d("PlayRuler-checkRules", "65");
@@ -725,7 +787,7 @@ public class PlayRuler {
                                     int needGuaCount = (lackDuiCount * 2) < lackCardsCount ?
                                             (lackDuiCount * 2) : lackCardsCount;
                                     selfZhuCards.removeAll(selfZhuDui);
-                                    for (int i = 0; i < needGuaCount; ++i){
+                                    /*for (int i = 0; i < needGuaCount; ++i){
                                         // 如果没有从大剐牌，则犯规
                                         if (!playCards.contains(selfZhuCards.get(i))){
                                             if (checkYingZhu(CodeUtil.getCardFromCode(selfZhuCards.get(i)))) {
@@ -735,6 +797,23 @@ public class PlayRuler {
                                                 Log.d("PlayRuler-checkRules", "67-2");
                                                 return true;
                                             }
+                                        }
+                                    }*/
+                                    playCards.removeAll(selfZhuDui);
+                                    if (Build.VERSION.SDK_INT >= 24){
+                                        playCards.sort(com);
+                                    }
+                                    ArrayList<Byte> temp = new ArrayList<>();
+                                    temp.addAll(selfZhuCards);
+                                    for (int i = 0; i < needGuaCount; ++i){
+                                        byte b = playCards.get(i);
+                                        if (com.compare(temp.get(0), b) < 0){
+                                            if (checkYingZhu(CodeUtil.getCardFromCode(temp.get(0)))) {
+                                                Log.d("PlayRuler-checkRules", "67-3");
+                                                return false;
+                                            }
+                                        }else{
+                                            temp.remove((Object)b);
                                         }
                                     }
                                     Log.d("PlayRuler-checkRules", "68");
@@ -969,7 +1048,7 @@ public class PlayRuler {
                             updateSelfZhuCards.addAll(selfZhuCards);
                             updateFirstCards.addAll(firstCards);
                             updatePlayCards.addAll(playCards);
-                            for (int i = 0; i < firstLianduiLength; ++i){
+                            /*for (int i = 0; i < firstLianduiLength; ++i){
                                 removePlayCards.add(selfZhuCards.get(i * 2));
                                 removePlayCards.add(selfZhuCards.get(i * 2 + 1));
                             }
@@ -980,6 +1059,25 @@ public class PlayRuler {
                                         Log.d("PlayRuler-checkRules", "20-2");
                                         return false;
                                     }
+                                }
+                            }*/
+                            if (Build.VERSION.SDK_INT >= 24){
+                                playCards.sort(com);
+                            }
+                            ArrayList<Byte> temp = new ArrayList<>();
+                            temp.addAll(selfZhuCards);
+                            for (int i = 0; i < firstLianduiLength * 2; ++i){
+                                byte b = playCards.get(i);
+                                if (com.compare(temp.get(0), b) < 0){
+                                    if (checkYingZhu(CodeUtil.getCardFromCode(temp.get(0)))) {
+                                        Log.d("PlayRuler-checkRules", "20-3");
+                                        return false;
+                                    }else{
+                                        removePlayCards.add(b);
+                                    }
+                                }else{
+                                    temp.remove((Object)b);
+                                    removePlayCards.add(b);
                                 }
                             }
                             int removeFirstIndex = firstCards.indexOf(firstLianduiFirstCard);
@@ -1043,7 +1141,7 @@ public class PlayRuler {
                             }
                         } else {
                             // 手牌没有对子
-                            ArrayList<Byte> removePlayCards = new ArrayList<>();
+                            /*ArrayList<Byte> removePlayCards = new ArrayList<>();
                             for (int i = 0; i < firstDui.size(); ++i) {
                                 removePlayCards.add(selfZhuCards.get(i * 2));
                                 removePlayCards.add(selfZhuCards.get(i * 2 + 1));
@@ -1056,6 +1154,22 @@ public class PlayRuler {
                                     }else{
                                         return true;
                                     }
+                                }
+                            }*/
+                            if (Build.VERSION.SDK_INT >= 24){
+                                playCards.sort(com);
+                            }
+                            ArrayList<Byte> temp = new ArrayList<>();
+                            temp.addAll(selfZhuCards);
+                            for (int i = 0; i < firstDui.size() * 2; ++i){
+                                byte b = playCards.get(i);
+                                if (com.compare(temp.get(0), b) < 0){
+                                    if (checkYingZhu(CodeUtil.getCardFromCode(temp.get(0)))) {
+                                        Log.d("PlayRuler-checkRules", "20-4");
+                                        return false;
+                                    }
+                                }else{
+                                    temp.remove((Object)b);
                                 }
                             }
                             return true;

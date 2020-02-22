@@ -4,6 +4,7 @@ import android.os.Build;
 import android.util.Log;
 
 import com.laowuren.levelup.others.Card;
+import com.laowuren.levelup.others.CodeComparator;
 import com.laowuren.levelup.others.Rank;
 import com.laowuren.levelup.others.Suit;
 

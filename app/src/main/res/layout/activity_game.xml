@@ -130,6 +130,7 @@
             android:id="@+id/button_chapai_right"
             android:visibility="invisible"
             android:text="查牌"
+            android:gravity="center"
             android:textSize="16sp"
             android:layout_alignParentRight="true"
             android:layout_below="@id/right_play_region"/>
@@ -180,6 +181,7 @@
             android:id="@+id/button_chapai_top"
             android:visibility="invisible"
             android:text="查牌"
+            android:gravity="center"
             android:textSize="16sp"
             android:layout_toLeftOf="@id/image_zhu"/>
 
@@ -228,6 +230,7 @@
             android:id="@+id/button_chapai_left"
             android:visibility="invisible"
             android:text="查牌"
+            android:gravity="center"
             android:textSize="16sp"
             android:layout_alignParentLeft="true"
             android:layout_below="@id/left_play_region"/>
@@ -270,6 +273,7 @@
             android:id="@+id/button_chapai_self"
             android:visibility="invisible"
             android:text="查牌"
+            android:gravity="center"
             android:textSize="16sp"
             android:layout_alignParentBottom="true"
             android:layout_toLeftOf="@id/button_chupai"/>
