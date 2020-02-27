@@ -211,6 +211,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         clearHandCardsRegion();
         clearPlayRegion(false);
         clearPlayedRegion();
+        zhuImage.setImageBitmap(BitmapManager.bitmapHashMap.get((byte)0xff));
         scoreText.setText("·ÖÊý: 0");
         score = 0;
         showSuitId = -1;
@@ -475,7 +476,14 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         if (Build.VERSION.SDK_INT >= 24)
             imageViews.sort(imgCom);
         for (int i = 0; i < imageViews.size(); ++i){
-            System.out.println(imageViews);
+            MyImageView imageView = imageViews.get(i);
+            boolean isZhu;
+            if (ruler.getSuit(CodeUtil.getCardFromCode(imageView.code)) == null) {
+                isZhu = true;
+            } else {
+                isZhu = false;
+            }
+            imageViews.get(i).setImg(imageView.code, isZhu);
             handCardsLayout.addView(imageViews.get(i));
         }
     }
@@ -795,16 +803,21 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     protected void addCardToPlayRegion(byte card, int id){
         int loc = id - playerId;
         ImageView view = new ImageView(GameActivity.this);
-        view.setImageBitmap(BitmapManager.bitmapHashMap.get(card));
+        if (ruler.getSuit(CodeUtil.getCardFromCode(card)) == null) {
+            view.setImageBitmap(BitmapManager.bitmapHashMap.get((byte)(card | 0x40)));
+        }else {
+            view.setImageBitmap(BitmapManager.bitmapHashMap.get(card));
+        }
+        view.setScaleType(ImageView.ScaleType.FIT_XY);
         view.setLayoutParams(smallParams);
         loc = loc < 0 ? loc + 4 : loc;
         playCardsLayouts[loc].addView(view);
     }
 
     protected void addCard(byte code, boolean callOnClick){
-        Card card = CodeUtil.getCardFromCode(code);
+        //Card card = CodeUtil.getCardFromCode(code);
         MyImageView imageView = new MyImageView(GameActivity.this, topMargin);
-        imageView.setImg(code);
+        imageView.setImg(code, false);
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

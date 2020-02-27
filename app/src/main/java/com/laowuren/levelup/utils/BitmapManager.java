@@ -24,6 +24,11 @@ public class BitmapManager {
                 Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(),
                         ResourceUtil.getIDByName(CodeUtil.getCardFromCode(code).toString().toLowerCase()));
                 bitmapHashMap.put(code, bitmap);
+
+                // 主牌，带星标，当前code | 0x40
+                Bitmap bitmap_ = BitmapFactory.decodeResource(context.getResources(),
+                        ResourceUtil.getIDByName(CodeUtil.getCardFromCode(code).toString().toLowerCase() + "_"));
+                bitmapHashMap.put((byte)(code | 0x40), bitmap_);
             }
         }
         Bitmap jokerBlack = BitmapFactory.decodeResource(context.getResources(),
@@ -32,6 +37,10 @@ public class BitmapManager {
         Bitmap jokerRed = BitmapFactory.decodeResource(context.getResources(),
                 ResourceUtil.getIDByName(CodeUtil.getCardFromCode((byte)0x4e).toString().toLowerCase()));
         bitmapHashMap.put((byte)0x4e, jokerRed);
+
+        Bitmap backCard = BitmapFactory.decodeResource(context.getResources(),
+                ResourceUtil.getIDByName("back"));
+        bitmapHashMap.put((byte)0xff, backCard);
     }
 
     public BitmapManager(){}
